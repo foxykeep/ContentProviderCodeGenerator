@@ -2,18 +2,18 @@
 	"database":
 	{
 		"package":"com.foxykeep.droidbeads.data.provider",
-		"database_classes_prefix":"DroidBeads",
+		"classes_prefix":"DroidBeads",
 		"version":1
 	},
 	"tables":[
 		{
 	        "class_name":"Palette",
-	        "has_bulk_insert":true,
 			"fields":[
 				{
 		            "name":"id",
 					"type":"integer",
-					"is_primary_key":true
+					"is_primary_key":true,
+					"is_id":true
 	        	},
 				{
 					"name":"name",
@@ -29,12 +29,12 @@
 		},
 		{
 	        "class_name":"BeadColor",
-	        "has_bulk_insert":true,
 			"fields":[
 				{
 		            "name":"id",
 					"type":"integer",
-					"is_primary_key":true
+					"is_primary_key":true,
+					"is_id":true
 	        	},
 				{
 					"name":"paletteId",
@@ -68,12 +68,12 @@
 		},
 		{
 	        "class_name":"Drawing",
-	        "has_bulk_insert":true,
 			"fields":[
 				{
 		            "name":"id",
 					"type":"integer",
-					"is_primary_key":true
+					"is_primary_key":true,
+					"is_id":true
 	        	},
 				{
 					"name":"name",
@@ -103,12 +103,12 @@
 		},
 		{
 	        "class_name":"DrawingPixel",
-	        "has_bulk_insert":true,
 			"fields":[
 				{
 		            "name":"id",
 					"type":"integer",
-					"is_primary_key":true
+					"is_primary_key":true,
+					"is_id":true
 	        	},
 				{
 					"name":"drawingId",

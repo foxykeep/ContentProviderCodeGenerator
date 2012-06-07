@@ -1,0 +1,55 @@
+    public static final class %1$s extends %2$sContent {
+
+        public static final String TABLE_NAME = "%3$s";
+        public static final String TYPE_ELEM_TYPE = "vnd.android.cursor.item/%4$s-%5$s";
+        public static final String TYPE_DIR_TYPE = "vnd.android.cursor.dir/%4$s-%5$s";
+
+        public static final Uri CONTENT_URI = Uri.parse(%2$sContent.CONTENT_URI + "/" + TABLE_NAME);
+
+        public static enum COLUMNS implements ColumnMetadata {
+        	%6$s;
+
+            private final String mColumnName;
+            private final String mFileName;
+
+            private COLUMNS(final String columnName, final String fileName) {
+                mColumnName = columnName;
+                mFileName = fileName;
+            }
+
+            @Override
+            public int getIndex() {
+                return ordinal();
+            }
+
+            @Override
+            public String getColumnName() {
+                return mColumnName;
+            }
+
+            @Override
+            public String getFileName() {
+                return mFileName;
+            }
+        }
+        
+        public static final String[] PROJECTION = new String[] {
+                %7$s
+        };
+
+        public static TableMetadata getMetadata() {
+            return new TableMetadata(CONTENT_URI, PROJECTION, COLUMNS.ID);
+        }
+
+        public static void createTable(final SQLiteDatabase db) {
+            db.execSQL("CREATE TABLE " + TABLE_NAME + " (" + %8$s + ", PRIMARY KEY (" + %9$s + "));");
+
+%10$s
+        }
+
+        public static void upgradeTable(final SQLiteDatabase db, final int oldVersion, final int newVersion) {
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME + ";");
+            %1$s.createTable(db);
+        }
+    }
+    

@@ -1,4 +1,4 @@
-package com.foxykeep.databasecodegenerator;
+package com.foxykeep.cpcodegenerator;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;

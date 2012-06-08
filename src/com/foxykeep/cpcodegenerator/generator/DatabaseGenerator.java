@@ -8,21 +8,21 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import com.foxykeep.cpcodegenerator.FileCache;
-import com.foxykeep.cpcodegenerator.model.ClassData;
 import com.foxykeep.cpcodegenerator.model.FieldData;
+import com.foxykeep.cpcodegenerator.model.TableData;
 
 public class DatabaseGenerator {
 
-    public static void generate(final String classPackage, final String classesPrefix, final int dbVersion, final ArrayList<ClassData> classDataList) {
-        if (classPackage == null || classPackage.length() == 0 || classesPrefix == null || classesPrefix.length() == 0 || classDataList == null
-                || classDataList.isEmpty()) {
+    public static void generate(final String classPackage, final String classesPrefix, final int dbVersion, final ArrayList<TableData> tableDataList) {
+        if (classPackage == null || classPackage.length() == 0 || classesPrefix == null || classesPrefix.length() == 0 || tableDataList == null
+                || tableDataList.isEmpty()) {
             return;
         }
-        generateContentClass(classPackage, classesPrefix, classDataList);
-        generateProviderClass(classPackage, classesPrefix, dbVersion, classDataList);
+        generateContentClass(classPackage, classesPrefix, tableDataList);
+        generateProviderClass(classPackage, classesPrefix, dbVersion, tableDataList);
     }
 
-    private static void generateContentClass(final String classPackage, final String classesPrefix, final ArrayList<ClassData> classDataList) {
+    private static void generateContentClass(final String classPackage, final String classesPrefix, final ArrayList<TableData> tableDataList) {
 
         final StringBuilder sb = new StringBuilder();
         BufferedReader br;
@@ -51,7 +51,7 @@ public class DatabaseGenerator {
 
             boolean hasPreviousPrimaryKey = false;
 
-            for (ClassData classData : classDataList) {
+            for (TableData tableData : tableDataList) {
                 sbEnumFields.setLength(0);
                 sbProjection.setLength(0);
                 sbCreateTable.setLength(0);
@@ -59,16 +59,16 @@ public class DatabaseGenerator {
                 sbIndexes.setLength(0);
                 hasPreviousPrimaryKey = false;
 
-                final int fieldListSize = classData.fieldList.size();
+                final int fieldListSize = tableData.fieldList.size();
                 for (int i = 0; i < fieldListSize; i++) {
-                    final FieldData fieldData = classData.fieldList.get(i);
+                    final FieldData fieldData = tableData.fieldList.get(i);
                     final boolean isNotLast = i != fieldListSize - 1;
 
                     sbEnumFields.append(fieldData.dbConstantName).append("(");
                     if (fieldData.dbIsPrimaryKey) {
-                        sbEnumFields.append("BaseColumns._ID, \"").append(fieldData.jsonField).append("\")");
+                        sbEnumFields.append("BaseColumns._ID)");
                     } else {
-                        sbEnumFields.append("\"").append(fieldData.dbName).append("\", \"").append(fieldData.jsonField).append("\")");
+                        sbEnumFields.append("\"").append(fieldData.dbName).append("\")");
                     }
 
                     sbProjection.append("COLUMNS.").append(fieldData.dbConstantName).append(".getColumnName()");
@@ -83,7 +83,7 @@ public class DatabaseGenerator {
                     }
 
                     if (fieldData.dbHasIndex) {
-                        sbIndexes.append("            db.execSQL(\"CREATE INDEX ").append(classData.dbTableName).append("_").append(fieldData.dbName)
+                        sbIndexes.append("            db.execSQL(\"CREATE INDEX ").append(tableData.dbTableName).append("_").append(fieldData.dbName)
                                 .append(" on \" + TABLE_NAME + \"(\" + COLUMNS.").append(fieldData.dbConstantName)
                                 .append(".getColumnName() + \");\");\n");
                     }
@@ -98,8 +98,8 @@ public class DatabaseGenerator {
 
                 }
 
-                sbSubclasses.append(String.format(contentSubClass, classData.dbClassName, classesPrefix, classData.dbTableName,
-                        classesPrefix.toLowerCase(), classData.dbTableName.toLowerCase(), sbEnumFields.toString(), sbProjection.toString(),
+                sbSubclasses.append(String.format(contentSubClass, tableData.dbClassName, classesPrefix, tableData.dbTableName,
+                        classesPrefix.toLowerCase(), tableData.dbTableName.toLowerCase(), sbEnumFields.toString(), sbProjection.toString(),
                         sbCreateTable.toString(), sbCreateTablePrimaryKey.toString(), sbIndexes.toString()));
             }
 
@@ -113,10 +113,7 @@ public class DatabaseGenerator {
     }
 
     private static void generateProviderClass(final String classPackage, final String classesPrefix, final int dbVersion,
-            final ArrayList<ClassData> classDataList) {
-
-        final String contentName = classesPrefix + "Content";
-        final String providerName = classesPrefix + "Provider";
+            final ArrayList<TableData> tableDataList) {
 
         final StringBuilder sbImports = new StringBuilder();
         final StringBuilder sbTableConstants = new StringBuilder();
@@ -128,49 +125,49 @@ public class DatabaseGenerator {
         final StringBuilder sbCaseWithoutId = new StringBuilder();
         final StringBuilder sbGetType = new StringBuilder();
 
-        final int classDataListSize = classDataList.size();
-        for (int i = 0; i < classDataListSize; i++) {
-            final ClassData classData = classDataList.get(i);
-            sbImports.append("import ").append(classPackage).append(".provider.").append(contentName).append(".").append(classData.dbClassName)
-                    .append(";\n");
+        final int tableDataListSize = tableDataList.size();
+        for (int i = 0; i < tableDataListSize; i++) {
+            final TableData tableData = tableDataList.get(i);
+            sbImports.append("import ").append(classPackage).append(".provider.").append(classesPrefix).append("Content.")
+                    .append(tableData.dbClassName).append(";\n");
 
-            sbTableConstants.append("    private static final int ").append(classData.dbConstantName).append("_BASE = 0x")
-                    .append(Integer.toHexString(i + 1).toUpperCase()).append("000;\n");
-            sbTableConstants.append("    private static final int ").append(classData.dbConstantName).append(" = ").append(classData.dbConstantName)
+            sbTableConstants.append("    private static final int ").append(tableData.dbConstantName).append("_BASE = 0x")
+                    .append(Integer.toHexString(i).toUpperCase()).append("000;\n");
+            sbTableConstants.append("    private static final int ").append(tableData.dbConstantName).append(" = ").append(tableData.dbConstantName)
                     .append("_BASE;\n");
-            sbTableConstants.append("    private static final int ").append(classData.dbConstantName).append("_ID = ")
-                    .append(classData.dbConstantName).append("_BASE + 1;\n\n");
+            sbTableConstants.append("    private static final int ").append(tableData.dbConstantName).append("_ID = ")
+                    .append(tableData.dbConstantName).append("_BASE + 1;\n\n");
 
-            sbTableNames.append(classData.dbClassName).append(".TABLE_NAME");
-            if (i != classDataListSize - 1) {
+            sbTableNames.append(tableData.dbClassName).append(".TABLE_NAME");
+            if (i != tableDataListSize - 1) {
                 sbTableNames.append(", ");
             }
 
-            sbUriMatcher.append("        matcher.addURI(AUTHORITY, ").append(classData.dbClassName).append(".TABLE_NAME, ")
-                    .append(classData.dbConstantName).append(");\n");
-            sbUriMatcher.append("        matcher.addURI(AUTHORITY, ").append(classData.dbClassName).append(".TABLE_NAME + \"/#\", ")
-                    .append(classData.dbConstantName).append("_ID);");
+            sbUriMatcher.append("        matcher.addURI(AUTHORITY, ").append(tableData.dbClassName).append(".TABLE_NAME, ")
+                    .append(tableData.dbConstantName).append(");\n");
+            sbUriMatcher.append("        matcher.addURI(AUTHORITY, ").append(tableData.dbClassName).append(".TABLE_NAME + \"/#\", ")
+                    .append(tableData.dbConstantName).append("_ID);");
             sbUriMatcher.append("\n");
 
-            sbCreateTables.append("            if (ACTIVATE_ALL_LOGS) {\n                Log.d(LOG_TAG, \"").append(classData.dbClassName)
+            sbCreateTables.append("            if (ACTIVATE_ALL_LOGS) {\n                Log.d(LOG_TAG, \"").append(tableData.dbClassName)
                     .append(" | createTable start\");\n            }\n");
-            sbCreateTables.append("            ").append(classData.dbClassName).append(".createTable(db);\n");
-            sbCreateTables.append("            if (ACTIVATE_ALL_LOGS) {\n                Log.d(LOG_TAG, \"").append(classData.dbClassName)
+            sbCreateTables.append("            ").append(tableData.dbClassName).append(".createTable(db);\n");
+            sbCreateTables.append("            if (ACTIVATE_ALL_LOGS) {\n                Log.d(LOG_TAG, \"").append(tableData.dbClassName)
                     .append(" | createTable end\");\n            }\n");
 
-            sbUpgradeTables.append("            if (ACTIVATE_ALL_LOGS) {\n                Log.d(LOG_TAG, \"").append(classData.dbClassName)
+            sbUpgradeTables.append("            if (ACTIVATE_ALL_LOGS) {\n                Log.d(LOG_TAG, \"").append(tableData.dbClassName)
                     .append(" | upgradeTable start\");\n            }\n");
-            sbUpgradeTables.append("            ").append(classData.dbClassName).append(".upgradeTable(db, oldVersion, newVersion);\n");
-            sbUpgradeTables.append("            if (ACTIVATE_ALL_LOGS) {\n                Log.d(LOG_TAG, \"").append(classData.dbClassName)
+            sbUpgradeTables.append("            ").append(tableData.dbClassName).append(".upgradeTable(db, oldVersion, newVersion);\n");
+            sbUpgradeTables.append("            if (ACTIVATE_ALL_LOGS) {\n                Log.d(LOG_TAG, \"").append(tableData.dbClassName)
                     .append(" | upgradeTable end\");\n            }\n");
 
-            sbCaseWithId.append("            case ").append(classData.dbConstantName).append("_ID:\n");
-            sbCaseWithoutId.append("            case ").append(classData.dbConstantName).append(":\n");
+            sbCaseWithId.append("            case ").append(tableData.dbConstantName).append("_ID:\n");
+            sbCaseWithoutId.append("            case ").append(tableData.dbConstantName).append(":\n");
 
-            sbGetType.append("            case ").append(classData.dbConstantName).append("_ID:\n");
-            sbGetType.append("                return ").append(classData.dbClassName).append(".TYPE_ELEM_TYPE;\n");
-            sbGetType.append("            case ").append(classData.dbConstantName).append(":\n");
-            sbGetType.append("                return ").append(classData.dbClassName).append(".TYPE_DIR_TYPE;\n");
+            sbGetType.append("            case ").append(tableData.dbConstantName).append("_ID:\n");
+            sbGetType.append("                return ").append(tableData.dbClassName).append(".TYPE_ELEM_TYPE;\n");
+            sbGetType.append("            case ").append(tableData.dbConstantName).append(":\n");
+            sbGetType.append("                return ").append(tableData.dbClassName).append(".TYPE_DIR_TYPE;\n");
         }
 
         final StringBuilder sb = new StringBuilder();
@@ -190,10 +187,10 @@ public class DatabaseGenerator {
         }
 
         FileCache.saveFile(
-                "output/" + classPackage.replace(".", "/") + "/provider/" + providerName + ".java",
-                String.format(sb.toString(), classPackage, sbImports.toString(), providerName, dbVersion, sbTableConstants.toString(),
+                "output/" + classPackage.replace(".", "/") + "/provider/" + classesPrefix + "Provider.java",
+                String.format(sb.toString(), classPackage, sbImports.toString(), classesPrefix, dbVersion, sbTableConstants.toString(),
                         sbTableNames.toString(), sbUriMatcher.toString(), sbCreateTables.toString(), sbUpgradeTables.toString(),
-                        sbCaseWithId.toString(), sbCaseWithoutId.toString(), sbGetType.toString(), contentName));
+                        sbCaseWithId.toString(), sbCaseWithoutId.toString(), sbGetType.toString()));
 
     }
 }

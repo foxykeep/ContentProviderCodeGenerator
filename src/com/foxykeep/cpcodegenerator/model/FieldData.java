@@ -9,9 +9,6 @@ public class FieldData {
 
     public String name;
     public String type;
-    public String methodType;
-    public String subClass;
-    public String subClassField;
 
     public String dbName;
     public String dbConstantName;
@@ -20,43 +17,29 @@ public class FieldData {
     public boolean dbIsId;
     public boolean dbHasIndex;
 
-    public boolean isVersionField;
-
-    public String jsonField;
-
-    public int md5Order = -1;
-    public String md5Type = null;
-
     public FieldData(final JSONObject json) throws JSONException {
         name = json.getString("name");
         setType(json.getString("type"));
 
-        isVersionField = json.optBoolean("is_version_field", false);
-
         dbConstantName = NameUtil.createConstantName(name);
-        dbIsPrimaryKey = json.optBoolean("db_is_primary_key", false);
-        if (dbIsPrimaryKey && !isVersionField) {
+        dbIsPrimaryKey = json.optBoolean("is_primary_key", false);
+        dbIsId = json.optBoolean("is_id", false);
+        if (dbIsId) {
             dbName = "_id";
         } else {
             dbName = name;
         }
         dbHasIndex = !dbIsPrimaryKey && json.optBoolean("db_has_index", false);
-
-        jsonField = json.optString("json_field");
-
-        md5Order = json.optInt("md5_order", -1);
-        md5Type = json.optString("md5_type");
     }
 
     private void setType(final String type) {
         this.type = type;
-        methodType = type.substring(0, 1).toUpperCase() + type.substring(1);
 
-        if (type.equals("int") || type.equals("long") || type.equals("boolean") || type.equals("date")) {
+        if (type.equals("int") || type.equals("integer") || type.equals("long") || type.equals("boolean") || type.equals("date")) {
             dbType = "integer";
-        } else if (type.equals("float") || type.equals("double")) {
+        } else if (type.equals("float") || type.equals("double") || type.equals("real")) {
             dbType = "real";
-        } else if (type.equals("string")) {
+        } else if (type.equals("string") || type.equals("text") || type.equals("String")) {
             dbType = "text";
         }
     }

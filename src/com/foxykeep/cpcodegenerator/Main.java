@@ -3,26 +3,24 @@ package com.foxykeep.cpcodegenerator;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.foxykeep.cpcodegenerator.generator.DatabaseGenerator;
-import com.foxykeep.cpcodegenerator.model.ClassData;
+import com.foxykeep.cpcodegenerator.model.TableData;
 
 public class Main {
 
-    private static final String DUMP_CODE_ROOT_FOLDER = "res/dumpcode/";
-
     public static void main(final String[] args) {
 
-        final File file = new File("res/classes.json");
+        final File file = new File("input/classes.json");
         final char[] buffer = new char[2048];
         final StringBuilder sb = new StringBuilder();
         final Reader in;
@@ -51,32 +49,30 @@ public class Main {
 
         try {
             final JSONObject root = new JSONObject(content);
-            final JSONArray jsonGames = root.getJSONArray("games");
+            final JSONObject jsonDatabase = root.getJSONObject("database");
 
-            final int jsonGamesLength = jsonGames.length();
-            for (int i = 0; i < jsonGamesLength; i++) {
-                JSONObject gamesRoot = jsonGames.getJSONObject(i);
+            // Classes generation
+            String classPackage = null, classesPrefix = null;
+            int dbVersion = -1;
+            classPackage = jsonDatabase.getString("package");
+            classesPrefix = jsonDatabase.getString("classes_prefix");
+            dbVersion = jsonDatabase.getInt("version");
 
-                // Classes generation
-                String classPackage = null, classesShortcut = null, classesPrefix = null, dumpCodeFolder = null;
-                int dbVersion = -1;
-                classPackage = gamesRoot.getString("package");
-                classesShortcut = gamesRoot.getString("classes_shortcut");
-                classesPrefix = gamesRoot.getString("classes_prefix");
-                dbVersion = gamesRoot.getInt("version");
-                dumpCodeFolder = DUMP_CODE_ROOT_FOLDER + gamesRoot.getString("dump_code_folder") + "/";
-                final boolean hasDumpCode = gamesRoot.optBoolean("has_dump_code", false);
+            ArrayList<TableData> classDataList = TableData.getClassesData(root.getJSONArray("tables"));
 
-                ArrayList<ClassData> classDataList = ClassData.getClassesData(gamesRoot.getJSONArray("classes"));
-
-                for (ClassData classData : classDataList) {
-                    classData.generateClass(classPackage, classesPrefix, dumpCodeFolder);
-                }
-
-                // Database generation
-                DatabaseGenerator.generate(classPackage, classesPrefix, dbVersion, classDataList);
-            }
+            // Database generation
+            DatabaseGenerator.generate(classPackage, classesPrefix, dbVersion, classDataList);
         } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            final String outputColumnMetadataPath = "output/com/foxykeep/datadroid/provider/util/ColumnMetadata.java";
+            FileCache.createFileDir(outputColumnMetadataPath);
+            FileCache.copyFile(new FileInputStream(new File("res/ColumnMetadata.java")), new FileOutputStream(new File(outputColumnMetadataPath)));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

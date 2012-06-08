@@ -1,13 +1,13 @@
 {
 	"database":
 	{
-		"package":"com.foxykeep.droidbeads.data.provider",
+		"package":"com.foxykeep.droidbeads",
 		"classes_prefix":"DroidBeads",
 		"version":1
 	},
 	"tables":[
 		{
-	        "class_name":"Palette",
+	        "table_name":"Palette",
 			"fields":[
 				{
 		            "name":"id",
@@ -28,7 +28,7 @@
 			]
 		},
 		{
-	        "class_name":"BeadColor",
+	        "table_name":"BeadColor",
 			"fields":[
 				{
 		            "name":"id",
@@ -67,7 +67,7 @@
 			]
 		},
 		{
-	        "class_name":"Drawing",
+	        "table_name":"Drawing",
 			"fields":[
 				{
 		            "name":"id",
@@ -102,7 +102,7 @@
 			]
 		},
 		{
-	        "class_name":"DrawingPixel",
+	        "table_name":"DrawingPixel",
 			"fields":[
 				{
 		            "name":"id",

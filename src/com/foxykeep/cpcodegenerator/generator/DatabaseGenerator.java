@@ -79,6 +79,7 @@ public class DatabaseGenerator {
                     sbEnumFields.append(fieldData.dbConstantName).append("(");
                     if (fieldData.dbIsPrimaryKey) {
                         sbEnumFields.append("BaseColumns._ID)");
+                    } else {
                         sbEnumFields.append("\"").append(fieldData.dbName).append("\")");
                     }
 

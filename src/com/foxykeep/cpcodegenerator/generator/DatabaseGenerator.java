@@ -127,11 +127,13 @@ public class DatabaseGenerator {
             }
 
             FileCache.saveFile(PathUtils.getAndroidFullPath(fileName, classPackage, PathUtils.PROVIDER) + classesPrefix + "Content.java",
-                    String.format(contentClass, classPackage, classesPrefix, sbSubclasses.toString(), PathUtils.PROVIDER));
+                    String.format(contentClass, classPackage, classesPrefix, sbSubclasses.toString(), PathUtils.PROVIDER, PathUtils.PROVIDER_UTIL));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
+            return;
         } catch (IOException e) {
             e.printStackTrace();
+            return;
         }
     }
 
@@ -177,7 +179,7 @@ public class DatabaseGenerator {
         for (int i = 0; i < TableDataListSize; i++) {
             final TableData TableData = TableDataList.get(i);
 
-            sbImports.append("import ").append(classPackage).append(".provider.").append(classesPrefix).append("Content.").append(TableData.dbClassName).append(";\n");
+            sbImports.append("import ").append(classPackage).append(".").append(PathUtils.PROVIDER).append(".").append(classesPrefix).append("Content.").append(TableData.dbClassName).append(";\n");
 
             sbTableConstants.append("    private static final int ").append(TableData.dbConstantName).append("_BASE = 0x").append(Integer.toHexString(i + 1).toUpperCase()).append("000;\n");
             sbTableConstants.append("    private static final int ").append(TableData.dbConstantName).append(" = ").append(TableData.dbConstantName).append("_BASE;\n");

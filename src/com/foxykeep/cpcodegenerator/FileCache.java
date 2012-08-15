@@ -31,6 +31,7 @@ public class FileCache {
             bais.close();
         } catch (IOException e) {
             e.printStackTrace();
+            return;
         }
     }
 

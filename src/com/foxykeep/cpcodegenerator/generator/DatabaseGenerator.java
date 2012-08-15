@@ -10,19 +10,24 @@ import java.util.ArrayList;
 import com.foxykeep.cpcodegenerator.FileCache;
 import com.foxykeep.cpcodegenerator.model.FieldData;
 import com.foxykeep.cpcodegenerator.model.TableData;
+import com.foxykeep.cpcodegenerator.util.PathUtils;
 
 public class DatabaseGenerator {
 
-    public static void generate(final String classPackage, final String classesPrefix, final int dbVersion, final ArrayList<TableData> tableDataList) {
-        if (classPackage == null || classPackage.length() == 0 || classesPrefix == null || classesPrefix.length() == 0 || tableDataList == null
-                || tableDataList.isEmpty()) {
-            return;
-        }
-        generateContentClass(classPackage, classesPrefix, tableDataList);
-        generateProviderClass(classPackage, classesPrefix, dbVersion, tableDataList);
+    private DatabaseGenerator() {
+
     }
 
-    private static void generateContentClass(final String classPackage, final String classesPrefix, final ArrayList<TableData> tableDataList) {
+    public static void generate(final String fileName, final String classPackage, final int dbVersion, final String dbAuthorityPackage, final String classesPrefix,
+            final ArrayList<TableData> TableDataList) {
+        if (classPackage == null || classPackage.length() == 0 || classesPrefix == null || classesPrefix.length() == 0 || TableDataList == null || TableDataList.isEmpty()) {
+            return;
+        }
+        generateContentClass(fileName, classPackage, classesPrefix, TableDataList);
+        generateProviderClass(fileName, classPackage, dbVersion, dbAuthorityPackage, classesPrefix, TableDataList);
+    }
+
+    private static void generateContentClass(final String fileName, final String classPackage, final String classesPrefix, final ArrayList<TableData> TableDataList) {
 
         final StringBuilder sb = new StringBuilder();
         BufferedReader br;
@@ -48,26 +53,32 @@ public class DatabaseGenerator {
             final StringBuilder sbCreateTable = new StringBuilder();
             final StringBuilder sbCreateTablePrimaryKey = new StringBuilder();
             final StringBuilder sbIndexes = new StringBuilder();
+            final StringBuilder sbBulkFields = new StringBuilder();
+            final StringBuilder sbBulkParams = new StringBuilder();
+            final StringBuilder sbBulkValues = new StringBuilder();
 
             boolean hasPreviousPrimaryKey = false;
 
-            for (TableData tableData : tableDataList) {
+            for (TableData TableData : TableDataList) {
                 sbEnumFields.setLength(0);
                 sbProjection.setLength(0);
                 sbCreateTable.setLength(0);
                 sbCreateTablePrimaryKey.setLength(0);
                 sbIndexes.setLength(0);
+                sbBulkFields.setLength(0);
+                sbBulkParams.setLength(0);
+                sbBulkValues.setLength(0);
                 hasPreviousPrimaryKey = false;
 
-                final int fieldListSize = tableData.fieldList.size();
+                final int fieldListSize = TableData.fieldList.size();
                 for (int i = 0; i < fieldListSize; i++) {
-                    final FieldData fieldData = tableData.fieldList.get(i);
+                    final FieldData fieldData = TableData.fieldList.get(i);
+
                     final boolean isNotLast = i != fieldListSize - 1;
 
                     sbEnumFields.append(fieldData.dbConstantName).append("(");
                     if (fieldData.dbIsPrimaryKey) {
                         sbEnumFields.append("BaseColumns._ID)");
-                    } else {
                         sbEnumFields.append("\"").append(fieldData.dbName).append("\")");
                     }
 
@@ -83,28 +94,39 @@ public class DatabaseGenerator {
                     }
 
                     if (fieldData.dbHasIndex) {
-                        sbIndexes.append("            db.execSQL(\"CREATE INDEX ").append(tableData.dbTableName).append("_").append(fieldData.dbName)
-                                .append(" on \" + TABLE_NAME + \"(\" + COLUMNS.").append(fieldData.dbConstantName)
-                                .append(".getColumnName() + \");\");\n");
+                        sbIndexes.append("            db.execSQL(\"CREATE INDEX ").append(TableData.dbTableName).append("_").append(fieldData.dbName).append(" on \" + TABLE_NAME + \"(\" + COLUMNS.")
+                                .append(fieldData.dbConstantName).append(".getColumnName() + \");\");\n");
+                    }
+
+                    sbBulkFields.append(".append(").append("COLUMNS.").append(fieldData.dbConstantName).append(".getColumnName())");
+                    sbBulkParams.append("?");
+                    if (fieldData.dbType.equals("text")) {
+                        sbBulkValues.append("            value = values.getAsString(").append("COLUMNS.").append(fieldData.dbConstantName).append(".getColumnName());\n");
+                        sbBulkValues.append("            stmt.bindString(i++, value != null ? value : \"\");\n");
+                    } else if (fieldData.dbType.equals("integer")) {
+                        sbBulkValues.append("            stmt.bindLong(i++, values.getAsLong(").append("COLUMNS.").append(fieldData.dbConstantName).append(".getColumnName()));\n");
+                    } else if (fieldData.dbType.equals("real")) {
+                        sbBulkValues.append("            stmt.bindDouble(i++, values.getAsDouble(").append("COLUMNS.").append(fieldData.dbConstantName).append(".getColumnName()));\n");
                     }
 
                     if (isNotLast) {
                         sbEnumFields.append(", ");
                         sbProjection.append(", ");
                         sbCreateTable.append(", \" + ");
+                        sbBulkFields.append(".append(\", \")");
+                        sbBulkParams.append(", ");
                     } else {
                         sbCreateTable.append("\"");
                     }
-
                 }
 
-                sbSubclasses.append(String.format(contentSubClass, tableData.dbClassName, classesPrefix, tableData.dbTableName,
-                        classesPrefix.toLowerCase(), tableData.dbTableName.toLowerCase(), sbEnumFields.toString(), sbProjection.toString(),
-                        sbCreateTable.toString(), sbCreateTablePrimaryKey.toString(), sbIndexes.toString()));
+                sbSubclasses.append(String.format(contentSubClass, TableData.dbClassName, classesPrefix, TableData.dbTableName, classesPrefix.toLowerCase(), TableData.dbTableName.toLowerCase(),
+                        sbEnumFields.toString(), sbProjection.toString(), sbCreateTable.toString(), sbCreateTablePrimaryKey.toString(), sbIndexes.toString(), sbBulkFields.toString(),
+                        sbBulkParams.toString(), sbBulkValues.toString()));
             }
 
-            FileCache.saveFile("output/" + classPackage.replace(".", "/") + "/provider/" + classesPrefix + "Content.java",
-                    String.format(contentClass, classPackage, classesPrefix, sbSubclasses.toString()));
+            FileCache.saveFile(PathUtils.getAndroidFullPath(fileName, classPackage, PathUtils.PROVIDER) + classesPrefix + "Content.java",
+                    String.format(contentClass, classPackage, classesPrefix, sbSubclasses.toString(), PathUtils.PROVIDER));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -112,8 +134,8 @@ public class DatabaseGenerator {
         }
     }
 
-    private static void generateProviderClass(final String classPackage, final String classesPrefix, final int dbVersion,
-            final ArrayList<TableData> tableDataList) {
+    private static void generateProviderClass(final String fileName, final String classPackage, final int dbVersion, final String dbAuthorityPackage, final String classesPrefix,
+            final ArrayList<TableData> TableDataList) {
 
         final StringBuilder sbImports = new StringBuilder();
         final StringBuilder sbTableConstants = new StringBuilder();
@@ -124,57 +146,21 @@ public class DatabaseGenerator {
         final StringBuilder sbCaseWithId = new StringBuilder();
         final StringBuilder sbCaseWithoutId = new StringBuilder();
         final StringBuilder sbGetType = new StringBuilder();
+        final StringBuilder sbBulk = new StringBuilder();
 
-        final int tableDataListSize = tableDataList.size();
-        for (int i = 0; i < tableDataListSize; i++) {
-            final TableData tableData = tableDataList.get(i);
-            sbImports.append("import ").append(classPackage).append(".provider.").append(classesPrefix).append("Content.")
-                    .append(tableData.dbClassName).append(";\n");
-
-            sbTableConstants.append("    private static final int ").append(tableData.dbConstantName).append("_BASE = 0x")
-                    .append(Integer.toHexString(i).toUpperCase()).append("000;\n");
-            sbTableConstants.append("    private static final int ").append(tableData.dbConstantName).append(" = ").append(tableData.dbConstantName)
-                    .append("_BASE;\n");
-            sbTableConstants.append("    private static final int ").append(tableData.dbConstantName).append("_ID = ")
-                    .append(tableData.dbConstantName).append("_BASE + 1;\n\n");
-
-            sbTableNames.append(tableData.dbClassName).append(".TABLE_NAME");
-            if (i != tableDataListSize - 1) {
-                sbTableNames.append(", ");
-            }
-
-            sbUriMatcher.append("        matcher.addURI(AUTHORITY, ").append(tableData.dbClassName).append(".TABLE_NAME, ")
-                    .append(tableData.dbConstantName).append(");\n");
-            sbUriMatcher.append("        matcher.addURI(AUTHORITY, ").append(tableData.dbClassName).append(".TABLE_NAME + \"/#\", ")
-                    .append(tableData.dbConstantName).append("_ID);");
-            sbUriMatcher.append("\n");
-
-            sbCreateTables.append("            if (ACTIVATE_ALL_LOGS) {\n                Log.d(LOG_TAG, \"").append(tableData.dbClassName)
-                    .append(" | createTable start\");\n            }\n");
-            sbCreateTables.append("            ").append(tableData.dbClassName).append(".createTable(db);\n");
-            sbCreateTables.append("            if (ACTIVATE_ALL_LOGS) {\n                Log.d(LOG_TAG, \"").append(tableData.dbClassName)
-                    .append(" | createTable end\");\n            }\n");
-
-            sbUpgradeTables.append("            if (ACTIVATE_ALL_LOGS) {\n                Log.d(LOG_TAG, \"").append(tableData.dbClassName)
-                    .append(" | upgradeTable start\");\n            }\n");
-            sbUpgradeTables.append("            ").append(tableData.dbClassName).append(".upgradeTable(db, oldVersion, newVersion);\n");
-            sbUpgradeTables.append("            if (ACTIVATE_ALL_LOGS) {\n                Log.d(LOG_TAG, \"").append(tableData.dbClassName)
-                    .append(" | upgradeTable end\");\n            }\n");
-
-            sbCaseWithId.append("            case ").append(tableData.dbConstantName).append("_ID:\n");
-            sbCaseWithoutId.append("            case ").append(tableData.dbConstantName).append(":\n");
-
-            sbGetType.append("            case ").append(tableData.dbConstantName).append("_ID:\n");
-            sbGetType.append("                return ").append(tableData.dbClassName).append(".TYPE_ELEM_TYPE;\n");
-            sbGetType.append("            case ").append(tableData.dbConstantName).append(":\n");
-            sbGetType.append("                return ").append(tableData.dbClassName).append(".TYPE_DIR_TYPE;\n");
-        }
-
+        String bulkText = "";
         final StringBuilder sb = new StringBuilder();
         BufferedReader br;
         try {
-            br = new BufferedReader(new FileReader(new File("res/provider.txt")));
+            br = new BufferedReader(new FileReader(new File("res/provider_bulk.txt")));
             String line;
+            while ((line = br.readLine()) != null) {
+                sb.append(line).append("\n");
+            }
+            bulkText = sb.toString();
+
+            sb.setLength(0);
+            br = new BufferedReader(new FileReader(new File("res/provider.txt")));
             while ((line = br.readLine()) != null) {
                 sb.append(line).append("\n");
             }
@@ -186,11 +172,47 @@ public class DatabaseGenerator {
             return;
         }
 
-        FileCache.saveFile(
-                "output/" + classPackage.replace(".", "/") + "/provider/" + classesPrefix + "Provider.java",
-                String.format(sb.toString(), classPackage, sbImports.toString(), classesPrefix, dbVersion, sbTableConstants.toString(),
-                        sbTableNames.toString(), sbUriMatcher.toString(), sbCreateTables.toString(), sbUpgradeTables.toString(),
-                        sbCaseWithId.toString(), sbCaseWithoutId.toString(), sbGetType.toString()));
+        final int TableDataListSize = TableDataList.size();
+        for (int i = 0; i < TableDataListSize; i++) {
+            final TableData TableData = TableDataList.get(i);
+
+            sbImports.append("import ").append(classPackage).append(".provider.").append(classesPrefix).append("Content.").append(TableData.dbClassName).append(";\n");
+
+            sbTableConstants.append("    private static final int ").append(TableData.dbConstantName).append("_BASE = 0x").append(Integer.toHexString(i + 1).toUpperCase()).append("000;\n");
+            sbTableConstants.append("    private static final int ").append(TableData.dbConstantName).append(" = ").append(TableData.dbConstantName).append("_BASE;\n");
+            sbTableConstants.append("    private static final int ").append(TableData.dbConstantName).append("_ID = ").append(TableData.dbConstantName).append("_BASE + 1;\n\n");
+
+            sbTableNames.append(TableData.dbClassName).append(".TABLE_NAME");
+            if (i != TableDataListSize - 1) {
+                sbTableNames.append(", ");
+            }
+
+            sbUriMatcher.append("        matcher.addURI(AUTHORITY, ").append(TableData.dbClassName).append(".TABLE_NAME, ").append(TableData.dbConstantName).append(");\n");
+            sbUriMatcher.append("        matcher.addURI(AUTHORITY, ").append(TableData.dbClassName).append(".TABLE_NAME + \"/#\", ").append(TableData.dbConstantName).append("_ID);");
+            sbUriMatcher.append("\n");
+
+            sbCreateTables.append("            if (ACTIVATE_ALL_LOGS) {\n                Log.d(LOG_TAG, \"").append(TableData.dbClassName).append(" | createTable start\");\n            }\n");
+            sbCreateTables.append("            ").append(TableData.dbClassName).append(".createTable(db);\n");
+            sbCreateTables.append("            if (ACTIVATE_ALL_LOGS) {\n                Log.d(LOG_TAG, \"").append(TableData.dbClassName).append(" | createTable end\");\n            }\n");
+
+            sbUpgradeTables.append("            if (ACTIVATE_ALL_LOGS) {\n                Log.d(LOG_TAG, \"").append(TableData.dbClassName).append(" | upgradeTable start\");\n            }\n");
+            sbUpgradeTables.append("            ").append(TableData.dbClassName).append(".upgradeTable(db, oldVersion, newVersion);\n");
+            sbUpgradeTables.append("            if (ACTIVATE_ALL_LOGS) {\n                Log.d(LOG_TAG, \"").append(TableData.dbClassName).append(" | upgradeTable end\");\n            }\n");
+
+            sbCaseWithId.append("            case ").append(TableData.dbConstantName).append("_ID:\n");
+            sbCaseWithoutId.append("            case ").append(TableData.dbConstantName).append(":\n");
+
+            sbGetType.append("            case ").append(TableData.dbConstantName).append("_ID:\n");
+            sbGetType.append("                return ").append(TableData.dbClassName).append(".TYPE_ELEM_TYPE;\n");
+            sbGetType.append("            case ").append(TableData.dbConstantName).append(":\n");
+            sbGetType.append("                return ").append(TableData.dbClassName).append(".TYPE_DIR_TYPE;\n");
+
+            sbBulk.append(String.format(bulkText, TableData.dbConstantName, TableData.dbClassName));
+        }
+
+        FileCache.saveFile(PathUtils.getAndroidFullPath(fileName, classPackage, PathUtils.PROVIDER) + classesPrefix + "Provider.java", String.format(sb.toString(), classPackage, sbImports.toString(),
+                classesPrefix, dbAuthorityPackage, sbTableConstants.toString(), sbTableNames.toString(), sbUriMatcher.toString(), sbCreateTables.toString(), sbUpgradeTables.toString(),
+                sbCaseWithId.toString(), sbCaseWithoutId.toString(), sbGetType.toString(), sbBulk.toString(), PathUtils.PROVIDER, dbVersion));
 
     }
 }

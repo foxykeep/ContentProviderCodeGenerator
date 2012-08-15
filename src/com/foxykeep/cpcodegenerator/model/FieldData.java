@@ -29,7 +29,7 @@ public class FieldData {
         } else {
             dbName = name;
         }
-        dbHasIndex = !dbIsPrimaryKey && json.optBoolean("db_has_index", false);
+        dbHasIndex = !dbIsPrimaryKey && json.optBoolean("is_index", false);
     }
 
     private void setType(final String type) {

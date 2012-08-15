@@ -2,6 +2,7 @@
 	"database":
 	{
 		"package":"com.foxykeep.droidbeads",
+		"authority_package":"com.foxykeep.droidbeads",
 		"classes_prefix":"DroidBeads",
 		"version":1
 	},

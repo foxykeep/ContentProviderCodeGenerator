@@ -1,0 +1,16 @@
+                case %1$s:
+                    insertStmt = db.compileStatement(%2$s.getBulkInsertString());
+                    for (final ContentValues value : values) {
+                        %2$s.bindValuesInBulkInsert(insertStmt, value);
+                        insertStmt.execute();
+                        insertStmt.clearBindings();
+                    }
+                    insertStmt.close();
+                    db.setTransactionSuccessful();
+                    numberInserted = values.length;
+
+			        if (ACTIVATE_ALL_LOGS) {
+			            Log.d(LOG_TAG, "bulkInsert: uri=" + uri + " | nb inserts : " + numberInserted);
+			        }
+                    break;
+                    

@@ -6,7 +6,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.foxykeep.cpcodegenerator.util.NameUtil;
+import com.foxykeep.cpcodegenerator.util.NameUtils;
 
 public class TableData {
 
@@ -18,8 +18,8 @@ public class TableData {
 
     public TableData(final JSONObject json) throws JSONException {
         dbClassName = json.getString("table_name");
-        dbTableName = NameUtil.createLowerCamelCaseName(dbClassName);
-        dbConstantName = NameUtil.createConstantName(dbTableName);
+        dbTableName = NameUtils.createLowerCamelCaseName(dbClassName);
+        dbConstantName = NameUtils.createConstantName(dbTableName);
 
         final JSONArray jsonFieldArray = json.getJSONArray("fields");
         final int jsonFieldArrayLength = jsonFieldArray.length();

@@ -2,12 +2,12 @@ package com.foxykeep.cpcodegenerator.util;
 
 import java.util.regex.Pattern;
 
-public class NameUtil {
+public class NameUtils {
 
     private static final Pattern PATTERN = Pattern.compile("([a-z])([A-Z])");
     private static final String REPLACEMENT = "$1_$2";
 
-    private NameUtil() {
+    private NameUtils() {
     }
 
     public static String createConstantName(final String name) {

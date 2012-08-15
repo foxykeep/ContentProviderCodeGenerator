@@ -37,12 +37,7 @@ public class %3$sProvider extends ContentProvider {
 
     public static final int DATABASE_VERSION = %15$d;
 
-    private static final int BGLOADERDATA_BASE = 0x0000;
-    private static final int BGLOADERDATA = BGLOADERDATA_BASE;
-    private static final int BGLOADERDATA_ID = BGLOADERDATA_BASE + 1;
-    
-%5$s
-    private static final int BASE_SHIFT = 12; // DO NOT TOUCH ! 12 bits to the
+%5$s    private static final int BASE_SHIFT = 12; // DO NOT TOUCH ! 12 bits to the
     // base type: 0,
     // 0x1000, 0x2000, etc.
 

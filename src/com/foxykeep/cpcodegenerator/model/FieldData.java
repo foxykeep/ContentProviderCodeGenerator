@@ -3,7 +3,7 @@ package com.foxykeep.cpcodegenerator.model;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.foxykeep.cpcodegenerator.util.NameUtil;
+import com.foxykeep.cpcodegenerator.util.NameUtils;
 
 public class FieldData {
 
@@ -21,7 +21,7 @@ public class FieldData {
         name = json.getString("name");
         setType(json.getString("type"));
 
-        dbConstantName = NameUtil.createConstantName(name);
+        dbConstantName = NameUtils.createConstantName(name);
         dbIsPrimaryKey = json.optBoolean("is_primary_key", false);
         dbIsId = json.optBoolean("is_id", false);
         if (dbIsId) {

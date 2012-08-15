@@ -14,6 +14,8 @@ import com.foxykeep.cpcodegenerator.util.PathUtils;
 
 public class DatabaseGenerator {
 
+    private static final String BULK_STRING_VALUE = "            String value;\n";
+
     private DatabaseGenerator() {
 
     }
@@ -57,7 +59,8 @@ public class DatabaseGenerator {
             final StringBuilder sbBulkParams = new StringBuilder();
             final StringBuilder sbBulkValues = new StringBuilder();
 
-            boolean hasPreviousPrimaryKey = false;
+            boolean hasPreviousPrimaryKey = false, hasTextField = false;
+            ;
 
             for (TableData TableData : TableDataList) {
                 sbEnumFields.setLength(0);
@@ -69,6 +72,7 @@ public class DatabaseGenerator {
                 sbBulkParams.setLength(0);
                 sbBulkValues.setLength(0);
                 hasPreviousPrimaryKey = false;
+                hasTextField = false;
 
                 final int fieldListSize = TableData.fieldList.size();
                 for (int i = 0; i < fieldListSize; i++) {
@@ -102,6 +106,7 @@ public class DatabaseGenerator {
                     sbBulkFields.append(".append(").append("COLUMNS.").append(fieldData.dbConstantName).append(".getColumnName())");
                     sbBulkParams.append("?");
                     if (fieldData.dbType.equals("text")) {
+                        hasTextField = true;
                         sbBulkValues.append("            value = values.getAsString(").append("COLUMNS.").append(fieldData.dbConstantName).append(".getColumnName());\n");
                         sbBulkValues.append("            stmt.bindString(i++, value != null ? value : \"\");\n");
                     } else if (fieldData.dbType.equals("integer")) {
@@ -123,7 +128,7 @@ public class DatabaseGenerator {
 
                 sbSubclasses.append(String.format(contentSubClass, TableData.dbClassName, classesPrefix, TableData.dbTableName, classesPrefix.toLowerCase(), TableData.dbTableName.toLowerCase(),
                         sbEnumFields.toString(), sbProjection.toString(), sbCreateTable.toString(), sbCreateTablePrimaryKey.toString(), sbIndexes.toString(), sbBulkFields.toString(),
-                        sbBulkParams.toString(), sbBulkValues.toString()));
+                        sbBulkParams.toString(), hasTextField ? BULK_STRING_VALUE : "", sbBulkValues.toString()));
             }
 
             FileCache.saveFile(PathUtils.getAndroidFullPath(fileName, classPackage, PathUtils.PROVIDER) + classesPrefix + "Content.java",

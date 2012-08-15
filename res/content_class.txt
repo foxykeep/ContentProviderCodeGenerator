@@ -18,8 +18,5 @@ public abstract class %2$sContent {
 
     private %2$sContent() {
     }
-
-%3$s
-
-}
+%3$s}
 

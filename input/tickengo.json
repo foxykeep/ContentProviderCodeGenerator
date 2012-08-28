@@ -4,6 +4,7 @@
 		"package":"com.tickengo",
 		"authority_package":"com.tickengo",
 		"classes_prefix":"Tickengo",
+		"content_classes_prefix":"Db",
 		"version":1
 	},
 	"tables":[
@@ -54,6 +55,30 @@
 				},
 				{
 					"name":"lastUpdateTime",
+					"type":"integer"
+				}
+			]
+		},
+		{
+	        "table_name":"WaitingTime",
+			"fields":[
+				{
+		            "name":"id",
+					"type":"integer",
+					"is_primary_key":true,
+					"is_id":true
+	        	},
+				{
+					"name":"displayOrder",
+					"type":"integer",
+					"is_index":true
+				},
+				{
+					"name":"nbSeconds",
+					"type":"integer"
+				},
+				{
+					"name":"name",
 					"type":"integer"
 				}
 			]

@@ -16,8 +16,8 @@ public class TableData {
 
     public ArrayList<FieldData> fieldList = new ArrayList<FieldData>();
 
-    public TableData(final JSONObject json) throws JSONException {
-        dbClassName = json.getString("table_name");
+    public TableData(final JSONObject json, final String contentClassesPrefix) throws JSONException {
+        dbClassName = contentClassesPrefix + json.getString("table_name");
         dbTableName = NameUtils.createLowerCamelCaseName(dbClassName);
         dbConstantName = NameUtils.createConstantName(dbTableName);
 
@@ -28,12 +28,12 @@ public class TableData {
         }
     }
 
-    public static ArrayList<TableData> getClassesData(final JSONArray jsonClassArray) throws JSONException {
+    public static ArrayList<TableData> getClassesData(final JSONArray jsonClassArray, final String contentClassesPrefix) throws JSONException {
         final ArrayList<TableData> classDataList = new ArrayList<TableData>();
 
         final int jsonClassArrayLength = jsonClassArray.length();
         for (int i = 0; i < jsonClassArrayLength; i++) {
-            classDataList.add(new TableData(jsonClassArray.getJSONObject(i)));
+            classDataList.add(new TableData(jsonClassArray.getJSONObject(i), contentClassesPrefix));
         }
 
         return classDataList;

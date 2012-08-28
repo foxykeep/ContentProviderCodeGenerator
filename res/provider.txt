@@ -53,8 +53,8 @@ public class %3$sProvider extends ContentProvider {
 %7$s    }
 
     private SQLiteDatabase mDatabase;
-    private SQLiteDatabase mReadableDatabase;
 
+    @SuppressWarnings("deprecation")
     public synchronized SQLiteDatabase getDatabase(final Context context) {
         // Always return the cached database, if we've got one
         if (mDatabase == null || !mDatabase.isOpen()) {
@@ -66,15 +66,6 @@ public class %3$sProvider extends ContentProvider {
 		}
 
         return mDatabase;
-    }
-
-    public synchronized SQLiteDatabase getReadableDatabase(final Context context) {
-        if (mReadableDatabase == null || !mReadableDatabase.isOpen()) {
-            final DatabaseHelper helper = new DatabaseHelper(context, DATABASE_NAME);
-            mReadableDatabase = helper.getReadableDatabase();
-        }
-
-        return mReadableDatabase;
     }
 
     private class DatabaseHelper extends SQLiteOpenHelper {

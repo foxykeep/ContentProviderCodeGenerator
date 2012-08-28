@@ -87,14 +87,15 @@ public class Main {
                 final JSONObject jsonDatabase = root.getJSONObject("database");
 
                 // Classes generation
-                String classPackage = null, classesPrefix = null, dbAuthorityPackage = null;
+                String classPackage = null, classesPrefix = null, contentClassesPrefix = null, dbAuthorityPackage = null;
                 int dbVersion = -1;
                 classPackage = jsonDatabase.getString("package");
                 classesPrefix = jsonDatabase.getString("classes_prefix");
+                contentClassesPrefix = jsonDatabase.optString("content_classes_prefix", "");
                 dbAuthorityPackage = jsonDatabase.getString("authority_package");
                 dbVersion = jsonDatabase.getInt("version");
 
-                ArrayList<TableData> classDataList = TableData.getClassesData(root.getJSONArray("tables"));
+                ArrayList<TableData> classDataList = TableData.getClassesData(root.getJSONArray("tables"), contentClassesPrefix);
 
                 // Database generation
                 DatabaseGenerator.generate(fileName, classPackage, dbVersion, dbAuthorityPackage, classesPrefix, classDataList);

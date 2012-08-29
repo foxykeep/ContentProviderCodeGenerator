@@ -186,7 +186,7 @@ public class DatabaseGenerator {
 
             sbImports.append("import ").append(classPackage).append(".").append(PathUtils.PROVIDER).append(".").append(classesPrefix).append("Content.").append(TableData.dbClassName).append(";\n");
 
-            sbTableConstants.append("    private static final int ").append(TableData.dbConstantName).append("_BASE = 0x").append(Integer.toHexString(i + 1).toUpperCase()).append("000;\n");
+            sbTableConstants.append("    private static final int ").append(TableData.dbConstantName).append("_BASE = 0x").append(Integer.toHexString(i).toUpperCase()).append("000;\n");
             sbTableConstants.append("    private static final int ").append(TableData.dbConstantName).append(" = ").append(TableData.dbConstantName).append("_BASE;\n");
             sbTableConstants.append("    private static final int ").append(TableData.dbConstantName).append("_ID = ").append(TableData.dbConstantName).append("_BASE + 1;\n\n");
 

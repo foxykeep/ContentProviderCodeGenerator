@@ -10,10 +10,12 @@
         public static enum COLUMNS implements ColumnMetadata {
         	%6$s;
 
-            private final String mColumnName;
+            private final String mName;
+            private final String mType;
 
-            private COLUMNS(final String columnName) {
-                mColumnName = columnName;
+            private COLUMNS(final String name, String type) {
+                mName = name;
+                mType = type;
             }
 
             @Override
@@ -22,8 +24,13 @@
             }
 
             @Override
-            public String getColumnName() {
-                return mColumnName;
+            public String getName() {
+                return mName;
+            }
+
+            @Override
+            public String getType() {
+                return mType;
             }
         }
         
@@ -32,7 +39,7 @@
         };
 
         public static void createTable(final SQLiteDatabase db) {
-            db.execSQL("CREATE TABLE " + TABLE_NAME + " (" + %8$s + ", PRIMARY KEY (" + %9$s + "));");
+            db.execSQL("CREATE TABLE " + TABLE_NAME + " (" + %8$s%9$s + ");");
 
 %10$s        }
 

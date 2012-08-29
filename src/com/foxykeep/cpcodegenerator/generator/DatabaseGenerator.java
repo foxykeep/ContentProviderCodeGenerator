@@ -15,6 +15,7 @@ import com.foxykeep.cpcodegenerator.util.PathUtils;
 public class DatabaseGenerator {
 
     private static final String BULK_STRING_VALUE = "            String value;\n";
+    private static final String PRIMARY_KEY_FORMAT = " + \", PRIMARY KEY (\" + %1$s + \")\"";
 
     private DatabaseGenerator() {
 
@@ -82,53 +83,52 @@ public class DatabaseGenerator {
 
                     sbEnumFields.append(fieldData.dbConstantName).append("(");
                     if (fieldData.dbIsPrimaryKey) {
-                        sbEnumFields.append("BaseColumns._ID)");
+                        sbEnumFields.append("BaseColumns._ID");
                     } else {
-                        sbEnumFields.append("\"").append(fieldData.dbName).append("\")");
+                        sbEnumFields.append("\"").append(fieldData.dbName).append("\"");
                     }
+                    sbEnumFields.append(", \"").append(fieldData.dbType).append("\")");
 
-                    sbProjection.append("COLUMNS.").append(fieldData.dbConstantName).append(".getColumnName()");
+                    sbProjection.append("COLUMNS.").append(fieldData.dbConstantName).append(".getName()");
 
-                    sbCreateTable.append("COLUMNS.").append(fieldData.dbConstantName).append(".getColumnName() + \" ").append(fieldData.dbType);
+                    sbCreateTable.append("COLUMNS.").append(fieldData.dbConstantName).append(".getName() + \" \" + ").append("COLUMNS.").append(fieldData.dbConstantName).append(".getType()");
                     if (fieldData.dbIsPrimaryKey) {
                         if (hasPreviousPrimaryKey) {
                             sbCreateTablePrimaryKey.append(" + \", \" + ");
                         }
                         hasPreviousPrimaryKey = true;
-                        sbCreateTablePrimaryKey.append("COLUMNS.").append(fieldData.dbConstantName).append(".getColumnName()");
+                        sbCreateTablePrimaryKey.append("COLUMNS.").append(fieldData.dbConstantName).append(".getName()");
                     }
 
                     if (fieldData.dbHasIndex) {
                         sbIndexes.append("            db.execSQL(\"CREATE INDEX ").append(TableData.dbTableName).append("_").append(fieldData.dbName).append(" on \" + TABLE_NAME + \"(\" + COLUMNS.")
-                                .append(fieldData.dbConstantName).append(".getColumnName() + \");\");\n");
+                                .append(fieldData.dbConstantName).append(".getName() + \");\");\n");
                     }
 
-                    sbBulkFields.append(".append(").append("COLUMNS.").append(fieldData.dbConstantName).append(".getColumnName())");
+                    sbBulkFields.append(".append(").append("COLUMNS.").append(fieldData.dbConstantName).append(".getName())");
                     sbBulkParams.append("?");
                     if (fieldData.dbType.equals("text")) {
                         hasTextField = true;
-                        sbBulkValues.append("            value = values.getAsString(").append("COLUMNS.").append(fieldData.dbConstantName).append(".getColumnName());\n");
+                        sbBulkValues.append("            value = values.getAsString(").append("COLUMNS.").append(fieldData.dbConstantName).append(".getName());\n");
                         sbBulkValues.append("            stmt.bindString(i++, value != null ? value : \"\");\n");
                     } else if (fieldData.dbType.equals("integer")) {
-                        sbBulkValues.append("            stmt.bindLong(i++, values.getAsLong(").append("COLUMNS.").append(fieldData.dbConstantName).append(".getColumnName()));\n");
+                        sbBulkValues.append("            stmt.bindLong(i++, values.getAsLong(").append("COLUMNS.").append(fieldData.dbConstantName).append(".getName()));\n");
                     } else if (fieldData.dbType.equals("real")) {
-                        sbBulkValues.append("            stmt.bindDouble(i++, values.getAsDouble(").append("COLUMNS.").append(fieldData.dbConstantName).append(".getColumnName()));\n");
+                        sbBulkValues.append("            stmt.bindDouble(i++, values.getAsDouble(").append("COLUMNS.").append(fieldData.dbConstantName).append(".getName()));\n");
                     }
 
                     if (isNotLast) {
                         sbEnumFields.append(", ");
                         sbProjection.append(", ");
-                        sbCreateTable.append(", \" + ");
+                        sbCreateTable.append(" + \", \" + ");
                         sbBulkFields.append(".append(\", \")");
                         sbBulkParams.append(", ");
-                    } else {
-                        sbCreateTable.append("\"");
                     }
                 }
 
                 sbSubclasses.append(String.format(contentSubClass, TableData.dbClassName, classesPrefix, TableData.dbTableName, classesPrefix.toLowerCase(), TableData.dbTableName.toLowerCase(),
-                        sbEnumFields.toString(), sbProjection.toString(), sbCreateTable.toString(), sbCreateTablePrimaryKey.toString(), sbIndexes.toString(), sbBulkFields.toString(),
-                        sbBulkParams.toString(), hasTextField ? BULK_STRING_VALUE : "", sbBulkValues.toString()));
+                        sbEnumFields.toString(), sbProjection.toString(), sbCreateTable.toString(), hasPreviousPrimaryKey ? String.format(PRIMARY_KEY_FORMAT, sbCreateTablePrimaryKey.toString()) : "",
+                        sbIndexes.toString(), sbBulkFields.toString(), sbBulkParams.toString(), hasTextField ? BULK_STRING_VALUE : "", sbBulkValues.toString()));
             }
 
             FileCache.saveFile(PathUtils.getAndroidFullPath(fileName, classPackage, PathUtils.PROVIDER) + classesPrefix + "Content.java",

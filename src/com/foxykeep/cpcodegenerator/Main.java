@@ -88,14 +88,14 @@ public class Main {
 
                 // Classes generation
                 String classPackage = null, classesPrefix = null, contentClassesPrefix = null, dbAuthorityPackage = null;
-                int dbVersion = -1;
+                int dbVersion = 1;
                 classPackage = jsonDatabase.getString("package");
                 classesPrefix = jsonDatabase.getString("classes_prefix");
                 contentClassesPrefix = jsonDatabase.optString("content_classes_prefix", "");
                 dbAuthorityPackage = jsonDatabase.getString("authority_package");
                 dbVersion = jsonDatabase.getInt("version");
 
-                ArrayList<TableData> classDataList = TableData.getClassesData(root.getJSONArray("tables"), contentClassesPrefix);
+                ArrayList<TableData> classDataList = TableData.getClassesData(root.getJSONArray("tables"), contentClassesPrefix, dbVersion);
 
                 // Database generation
                 DatabaseGenerator.generate(fileName, classPackage, dbVersion, dbAuthorityPackage, classesPrefix, classDataList);

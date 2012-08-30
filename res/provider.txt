@@ -35,7 +35,8 @@ public class %3$sProvider extends ContentProvider {
 
     public static final Uri INTEGRITY_CHECK_URI = Uri.parse("content://" + AUTHORITY + "/integrityCheck");
 
-    public static final int DATABASE_VERSION = %15$d;
+    // Version 1 : Creation of the database
+%16$s    public static final int DATABASE_VERSION = %15$d;
 
 %5$s    private static final int BASE_SHIFT = 12; // DO NOT TOUCH ! 12 bits to the
     // base type: 0,

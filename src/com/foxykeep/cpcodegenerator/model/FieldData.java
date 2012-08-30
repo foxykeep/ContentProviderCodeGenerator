@@ -10,6 +10,8 @@ public class FieldData {
     public String name;
     public String type;
 
+    public int version;
+
     public String dbName;
     public String dbConstantName;
     public String dbType = null;
@@ -20,6 +22,8 @@ public class FieldData {
     public FieldData(final JSONObject json) throws JSONException {
         name = json.getString("name");
         setType(json.getString("type"));
+
+        version = json.optInt("version", 1);
 
         dbConstantName = NameUtils.createConstantName(name);
         dbIsPrimaryKey = json.optBoolean("is_primary_key", false);
@@ -41,6 +45,15 @@ public class FieldData {
             dbType = "real";
         } else if (type.equals("string") || type.equals("text") || type.equals("String")) {
             dbType = "text";
+        }
+    }
+
+    public static String getDefaultValue(final String type) {
+
+        if (type.equals("string") || type.equals("text") || type.equals("String")) {
+            return "''";
+        } else {
+            return "-1";
         }
     }
 }

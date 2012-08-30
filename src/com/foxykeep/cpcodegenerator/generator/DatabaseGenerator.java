@@ -18,11 +18,13 @@ public class DatabaseGenerator {
     private static final String BULK_STRING_VALUE = "            String value;\n";
     private static final String PRIMARY_KEY_FORMAT = " + \", PRIMARY KEY (\" + %1$s + \")\"";
 
-    private static final String UPGRADE_VERSION_COMMENT_NOTHING = "        // Version %1$d - No changes\n";
-    private static final String UPGRADE_VERSION_COMMENT_FIELD = "        // Version %1$d - Add field%3$s %2$s\n";
+    private static final String UPGRADE_VERSION_COMMENT_NOTHING = "        // Version %1$d : No changes\n";
+    private static final String UPGRADE_VERSION_COMMENT_NOTHING_MULTI = "        // Version %1$d - %2$d : No changes\n";
+    private static final String UPGRADE_VERSION_COMMENT_FIELD = "        // Version %1$d : Add field%3$s %2$s\n";
     private static final String UPGRADE_VERSION_JUMP_TO_LATEST = "\n            if (oldVersion < newVersion) {\n                // No more changes since version %1$d so jump to newVersion\n                oldVersion = newVersion;\n            }";
 
     private static final String PROVIDER_UPGRADE_VERSION_VERSION = "    // Version %1$d : %2$s\n";
+    private static final String PROVIDER_UPGRADE_VERSION_MULTI = "    // Version %1$d - %2$d : %3$s\n";
     private static final String PROVIDER_UPGRADE_VERSION_OTHER = "    //             %1$s\n";
     private static final String PROVIDER_UPGRADE_ADD_TABLE = "Add table %1$s";
     private static final String PROVIDER_UPGRADE_ADD_FIELD = "Add field%3$s %1$s in table %2$s";
@@ -88,7 +90,7 @@ public class DatabaseGenerator {
             final StringBuilder sbBulkValues = new StringBuilder();
 
             boolean hasPreviousPrimaryKey = false, hasPreviousInsertFields = false, hasPreviousInsertDefaultValues = false, hasTextField = false, hasPreviousUpgradeElements = true;
-            int maxUpgradeVersion = 1;
+            int maxUpgradeVersion = 1, minUpgradeWithoutChanges = 1;
 
             for (TableData tableData : tableDataList) {
                 sbEnumFields.setLength(0);
@@ -160,11 +162,25 @@ public class DatabaseGenerator {
 
                 // Upgrade management
                 maxUpgradeVersion = tableData.version;
+                minUpgradeWithoutChanges = -1;
                 for (int currentVersion = tableData.version + 1, n = dbVersion; currentVersion <= n; currentVersion++) {
                     final List<FieldData> upgradeFieldDataList = tableData.upgradeFieldMap.get(currentVersion);
                     if (upgradeFieldDataList == null) {
-                        sbUpgradeTableComment.append(String.format(UPGRADE_VERSION_COMMENT_NOTHING, currentVersion));
+                        if (minUpgradeWithoutChanges == -1) {
+                            minUpgradeWithoutChanges = currentVersion;
+                        }
                         continue;
+                    } else if (minUpgradeWithoutChanges != -1) {
+                        if (minUpgradeWithoutChanges == currentVersion - 1) {
+                            // Only one without change
+                            sbUpgradeTableComment.append(String.format(UPGRADE_VERSION_COMMENT_NOTHING, minUpgradeWithoutChanges));
+                        } else {
+                            // Multiple versions with changes
+                            sbUpgradeTableComment.append(String.format(UPGRADE_VERSION_COMMENT_NOTHING_MULTI, minUpgradeWithoutChanges,
+                                    currentVersion - 1));
+                        }
+
+                        minUpgradeWithoutChanges = -1;
                     }
 
                     maxUpgradeVersion = currentVersion;
@@ -218,7 +234,6 @@ public class DatabaseGenerator {
 
                             sbUpgradeTableInsertDefaultValues.append(FieldData.getDefaultValue(fieldData.type));
                         }
-
                     }
 
                     sbUpgradeTable.append(String.format(contentSubClassUpgrade, currentVersion, sbUpgradeTableCreateTmpTable.toString(),
@@ -241,6 +256,14 @@ public class DatabaseGenerator {
                 // No more changes for the last versions so add the code to jump to the latest version
                 if (maxUpgradeVersion != dbVersion) {
                     sbUpgradeTable.append(String.format(UPGRADE_VERSION_JUMP_TO_LATEST, maxUpgradeVersion));
+
+                    if (maxUpgradeVersion == dbVersion - 1) {
+                        // Only one without change
+                        sbUpgradeTableComment.append(String.format(UPGRADE_VERSION_COMMENT_NOTHING, maxUpgradeVersion + 1));
+                    } else {
+                        // Multiple versions with changes
+                        sbUpgradeTableComment.append(String.format(UPGRADE_VERSION_COMMENT_NOTHING_MULTI, maxUpgradeVersion + 1, dbVersion));
+                    }
                 }
 
                 sbSubclasses.append(String.format(contentSubClass, tableData.dbClassName, classesPrefix, tableData.dbTableName,
@@ -278,6 +301,8 @@ public class DatabaseGenerator {
         final StringBuilder sbBulk = new StringBuilder();
         final StringBuilder sbUpgradeDatabaseComment = new StringBuilder();
         final StringBuilder sbUpgradeDatabaseCommentFields = new StringBuilder();
+
+        int minUpgradeWithoutChanges = 1;
 
         String bulkText = "";
         final StringBuilder sb = new StringBuilder();
@@ -352,6 +377,7 @@ public class DatabaseGenerator {
         }
 
         // Upgrade comments in the provider
+        minUpgradeWithoutChanges = -1;
         for (int currentVersion = 2; currentVersion <= dbVersion; currentVersion++) {
             sbUpgradeDatabaseCommentFields.setLength(0);
 
@@ -359,14 +385,10 @@ public class DatabaseGenerator {
             for (TableData tableData : tableDataList) {
 
                 if (tableData.version == currentVersion) {
-                    if (firstElem) {
-                        sbUpgradeDatabaseComment.append(String.format(PROVIDER_UPGRADE_VERSION_VERSION, currentVersion,
-                                String.format(PROVIDER_UPGRADE_ADD_TABLE, tableData.dbClassName)));
-                        firstElem = false;
-                    } else {
-                        sbUpgradeDatabaseComment.append(String.format(PROVIDER_UPGRADE_VERSION_OTHER,
-                                String.format(PROVIDER_UPGRADE_ADD_TABLE, tableData.dbClassName)));
-                    }
+                    appendUpgradeDatabaseComment(sbUpgradeDatabaseComment, firstElem, minUpgradeWithoutChanges, currentVersion,
+                            String.format(PROVIDER_UPGRADE_ADD_TABLE, tableData.dbClassName));
+                    firstElem = false;
+                    minUpgradeWithoutChanges = -1;
                 }
 
                 final List<FieldData> upgradeFieldList = tableData.upgradeFieldMap.get(currentVersion);
@@ -380,21 +402,29 @@ public class DatabaseGenerator {
                         sbUpgradeDatabaseCommentFields.append(fieldData.dbConstantName);
                     }
 
-                    if (firstElem) {
-                        sbUpgradeDatabaseComment.append(String.format(PROVIDER_UPGRADE_VERSION_VERSION, currentVersion, String.format(
-                                PROVIDER_UPGRADE_ADD_FIELD, sbUpgradeDatabaseCommentFields.toString(), tableData.dbClassName,
-                                upgradeFieldList.size() > 1 ? "s" : "")));
-                        firstElem = false;
-                    } else {
-                        sbUpgradeDatabaseComment.append(String.format(PROVIDER_UPGRADE_VERSION_OTHER, String.format(PROVIDER_UPGRADE_ADD_FIELD,
-                                sbUpgradeDatabaseCommentFields.toString(), tableData.dbClassName, upgradeFieldList.size() > 1 ? "s" : "")));
-                    }
+                    appendUpgradeDatabaseComment(sbUpgradeDatabaseComment, firstElem, minUpgradeWithoutChanges, currentVersion, String.format(
+                            PROVIDER_UPGRADE_ADD_FIELD, sbUpgradeDatabaseCommentFields.toString(), tableData.dbClassName,
+                            upgradeFieldList.size() > 1 ? "s" : ""));
+                    firstElem = false;
+                    minUpgradeWithoutChanges = -1;
                 }
             }
 
             // No changes in this version
-            if (firstElem) {
-                sbUpgradeDatabaseComment.append(String.format(PROVIDER_UPGRADE_VERSION_VERSION, currentVersion, PROVIDER_UPGRADE_NO_CHANGES));
+            if (firstElem && minUpgradeWithoutChanges == -1) {
+                minUpgradeWithoutChanges = currentVersion;
+            }
+        }
+
+        if (minUpgradeWithoutChanges != -1) {
+            if (minUpgradeWithoutChanges == dbVersion) {
+                // Only one without change
+                sbUpgradeDatabaseComment.append(String
+                        .format(PROVIDER_UPGRADE_VERSION_VERSION, minUpgradeWithoutChanges, PROVIDER_UPGRADE_NO_CHANGES));
+            } else {
+                // Multiple versions with changes
+                sbUpgradeDatabaseComment.append(String.format(PROVIDER_UPGRADE_VERSION_MULTI, minUpgradeWithoutChanges, dbVersion,
+                        PROVIDER_UPGRADE_NO_CHANGES));
             }
         }
 
@@ -403,5 +433,23 @@ public class DatabaseGenerator {
                 sbTableNames.toString(), sbUriMatcher.toString(), sbCreateTables.toString(), sbUpgradeTables.toString(), sbCaseWithId.toString(),
                 sbCaseWithoutId.toString(), sbGetType.toString(), sbBulk.toString(), providerFolder, dbVersion, sbUpgradeDatabaseComment.toString()));
 
+    }
+
+    private static void appendUpgradeDatabaseComment(final StringBuilder sb, final boolean firstElem, final int minUpgradeWithoutChanges,
+            final int currentVersion, final String content) {
+
+        if (minUpgradeWithoutChanges != -1) {
+            if (minUpgradeWithoutChanges == currentVersion - 1) {
+                sb.append(String.format(PROVIDER_UPGRADE_VERSION_VERSION, currentVersion - 1, PROVIDER_UPGRADE_NO_CHANGES));
+            } else {
+                sb.append(String.format(PROVIDER_UPGRADE_VERSION_MULTI, minUpgradeWithoutChanges, currentVersion - 1, PROVIDER_UPGRADE_NO_CHANGES));
+            }
+        }
+
+        if (firstElem) {
+            sb.append(String.format(PROVIDER_UPGRADE_VERSION_VERSION, currentVersion, content));
+        } else {
+            sb.append(String.format(PROVIDER_UPGRADE_VERSION_OTHER, content));
+        }
     }
 }

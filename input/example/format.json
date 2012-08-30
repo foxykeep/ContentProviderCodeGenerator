@@ -14,8 +14,8 @@
 				{
 		            "name":"id", // Required. Name of the field
 					"type":"integer", // Required. Type of the field. can be "int", "integer", "long", "boolean", "date", "float", "double", "real", "string", "String", "text"
-					"is_primary_key":true, // Optional. Whether the field is part of the primary key. Default is false.
-					"is_id":true, // Optional. Whether the field is the identifier field of the class. The column named will be changed to BaseColumns._ID in the database. Default is false.
+					"is_primary_key":true, // Optional. Whether the field is part of the primary key. Multiple fields can have this value set to true (for example if you have a complex primary key). Default is false.
+					"is_id":true, // Optional. Whether the field is the identifier field of the class. The column named will be changed to BaseColumns._ID in the database. Only one field should have this value set to true by table. Default is false.
 					"is_index":true, // Optional. Whether the field needs to have an index added to it in the database. Should be set to true for text field which will have a where clause used on them. Default is false.
                     "version":1 // Optional. Version of the database where this field is added to the table. Default is the table creation version.
 				},

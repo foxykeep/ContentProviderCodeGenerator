@@ -2,8 +2,10 @@
 	"database":
 	{
 		"package":"com.example.mypackage", // Required. Application package.
-		"authority_package":"com.example.mypackage", // Optional. AUTHORITY package for the database. If not present, package will be used.
+		"authority_package":"com.example.mypackage", // Optional. AUTHORITY package for the database. If not present, package will be used. 
 		"classes_prefix":"MyApplication", // Required. Classes prefix used to name the ContentProvider
+        "provider_folder":"data.provider" // Optional. End of the package where is stored the ContentProvider. Default is "data.provider".
+        "content_classes_prefix":"Db", // Optional. Prefix which will be added to the table classes in the Content class. Useful if you also have a model class with the same name as your table (They will be named DbMyClass and MyClass instead of both MyClass). Default is "". 
 		"version":1 // Required. Version of the database.
 	},
 	"tables":[ // your tables

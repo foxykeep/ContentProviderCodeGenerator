@@ -88,21 +88,22 @@ public class Main {
                 final JSONObject jsonDatabase = root.getJSONObject("database");
 
                 // Classes generation
-                String classPackage = null, classesPrefix = null, contentClassesPrefix = null, dbAuthorityPackage = null;
+                String classPackage = null, classesPrefix = null, contentClassesPrefix = null, dbAuthorityPackage = null, providerFolder = null;
                 int dbVersion = 1;
                 classPackage = jsonDatabase.getString("package");
                 classesPrefix = jsonDatabase.getString("classes_prefix");
                 contentClassesPrefix = jsonDatabase.optString("content_classes_prefix", "");
-                dbAuthorityPackage = jsonDatabase.getString("authority_package");
+                dbAuthorityPackage = jsonDatabase.optString("authority_package", classPackage);
+                providerFolder = jsonDatabase.optString("provider_folder", PathUtils.PROVIDER_DEFAULT);
                 dbVersion = jsonDatabase.getInt("version");
 
                 ArrayList<TableData> classDataList = TableData.getClassesData(root.getJSONArray("tables"), contentClassesPrefix, dbVersion);
 
                 // Database generation
-                DatabaseGenerator.generate(fileName, classPackage, dbVersion, dbAuthorityPackage, classesPrefix, classDataList);
+                DatabaseGenerator.generate(fileName, classPackage, dbVersion, dbAuthorityPackage, classesPrefix, classDataList, providerFolder);
 
-                FileCache.saveFile(PathUtils.getAndroidFullPath(fileName, classPackage, PathUtils.PROVIDER_UTIL) + "ColumnMetadata.java",
-                        String.format(columnMetadataText, classPackage, PathUtils.PROVIDER_UTIL));
+                FileCache.saveFile(PathUtils.getAndroidFullPath(fileName, classPackage, providerFolder + "." + PathUtils.UTIL)
+                        + "ColumnMetadata.java", String.format(columnMetadataText, classPackage, providerFolder + "." + PathUtils.UTIL));
 
             } catch (JSONException e) {
                 e.printStackTrace();

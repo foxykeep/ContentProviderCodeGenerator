@@ -33,17 +33,17 @@ public class DatabaseGenerator {
     }
 
     public static void generate(final String fileName, final String classPackage, final int dbVersion, final String dbAuthorityPackage,
-            final String classesPrefix, final ArrayList<TableData> tableDataList) {
+            final String classesPrefix, final ArrayList<TableData> tableDataList, final String providerFolder) {
         if (classPackage == null || classPackage.length() == 0 || classesPrefix == null || classesPrefix.length() == 0 || tableDataList == null
                 || tableDataList.isEmpty()) {
             return;
         }
-        generateContentClass(fileName, classPackage, classesPrefix, tableDataList, dbVersion);
-        generateProviderClass(fileName, classPackage, dbVersion, dbAuthorityPackage, classesPrefix, tableDataList);
+        generateContentClass(fileName, classPackage, classesPrefix, tableDataList, dbVersion, providerFolder);
+        generateProviderClass(fileName, classPackage, dbVersion, dbAuthorityPackage, classesPrefix, tableDataList, providerFolder);
     }
 
     private static void generateContentClass(final String fileName, final String classPackage, final String classesPrefix,
-            final ArrayList<TableData> tableDataList, final int dbVersion) {
+            final ArrayList<TableData> tableDataList, final int dbVersion, final String providerFolder) {
 
         final StringBuilder sb = new StringBuilder();
         BufferedReader br;
@@ -159,7 +159,6 @@ public class DatabaseGenerator {
                 }
 
                 // Upgrade management
-                hasPreviousPrimaryKey = false;
                 maxUpgradeVersion = tableData.version;
                 for (int currentVersion = tableData.version + 1, n = dbVersion; currentVersion <= n; currentVersion++) {
                     final List<FieldData> upgradeFieldDataList = tableData.upgradeFieldMap.get(currentVersion);
@@ -178,6 +177,7 @@ public class DatabaseGenerator {
                     hasPreviousUpgradeElements = false;
                     hasPreviousInsertFields = false;
                     hasPreviousInsertDefaultValues = false;
+                    hasPreviousPrimaryKey = false;
 
                     for (FieldData fieldData : tableData.fieldList) {
                         if (fieldData.version > currentVersion) {
@@ -250,8 +250,10 @@ public class DatabaseGenerator {
                         sbBulkValues.toString(), tableData.version, sbUpgradeTableComment.toString(), sbUpgradeTable.toString()));
             }
 
-            FileCache.saveFile(PathUtils.getAndroidFullPath(fileName, classPackage, PathUtils.PROVIDER) + classesPrefix + "Content.java",
-                    String.format(contentClass, classPackage, classesPrefix, sbSubclasses.toString(), PathUtils.PROVIDER, PathUtils.PROVIDER_UTIL));
+            FileCache.saveFile(
+                    PathUtils.getAndroidFullPath(fileName, classPackage, providerFolder) + classesPrefix + "Content.java",
+                    String.format(contentClass, classPackage, classesPrefix, sbSubclasses.toString(), providerFolder, providerFolder + "."
+                            + PathUtils.UTIL));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             return;
@@ -262,7 +264,7 @@ public class DatabaseGenerator {
     }
 
     private static void generateProviderClass(final String fileName, final String classPackage, final int dbVersion, final String dbAuthorityPackage,
-            final String classesPrefix, final ArrayList<TableData> tableDataList) {
+            final String classesPrefix, final ArrayList<TableData> tableDataList, final String providerFolder) {
 
         final StringBuilder sbImports = new StringBuilder();
         final StringBuilder sbTableConstants = new StringBuilder();
@@ -305,8 +307,8 @@ public class DatabaseGenerator {
         for (int i = 0; i < TableDataListSize; i++) {
             final TableData TableData = tableDataList.get(i);
 
-            sbImports.append("import ").append(classPackage).append(".").append(PathUtils.PROVIDER).append(".").append(classesPrefix)
-                    .append("Content.").append(TableData.dbClassName).append(";\n");
+            sbImports.append("import ").append(classPackage).append(".").append(providerFolder).append(".").append(classesPrefix).append("Content.")
+                    .append(TableData.dbClassName).append(";\n");
 
             sbTableConstants.append("    private static final int ").append(TableData.dbConstantName).append("_BASE = 0x")
                     .append(Integer.toHexString(i).toUpperCase()).append("000;\n");
@@ -396,11 +398,10 @@ public class DatabaseGenerator {
             }
         }
 
-        FileCache.saveFile(PathUtils.getAndroidFullPath(fileName, classPackage, PathUtils.PROVIDER) + classesPrefix + "Provider.java", String.format(
+        FileCache.saveFile(PathUtils.getAndroidFullPath(fileName, classPackage, providerFolder) + classesPrefix + "Provider.java", String.format(
                 sb.toString(), classPackage, sbImports.toString(), classesPrefix, dbAuthorityPackage, sbTableConstants.toString(),
                 sbTableNames.toString(), sbUriMatcher.toString(), sbCreateTables.toString(), sbUpgradeTables.toString(), sbCaseWithId.toString(),
-                sbCaseWithoutId.toString(), sbGetType.toString(), sbBulk.toString(), PathUtils.PROVIDER, dbVersion,
-                sbUpgradeDatabaseComment.toString()));
+                sbCaseWithoutId.toString(), sbGetType.toString(), sbBulk.toString(), providerFolder, dbVersion, sbUpgradeDatabaseComment.toString()));
 
     }
 }

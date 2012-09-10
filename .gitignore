@@ -3,4 +3,4 @@ gen
 .settings
 Thumbs.db
 .DS_Store
-output
+generator/output

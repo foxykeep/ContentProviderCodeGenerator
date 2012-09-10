@@ -12,13 +12,13 @@
 
         public static final Uri CONTENT_URI = Uri.parse(%2$sContent.CONTENT_URI + "/" + TABLE_NAME);
 
-        public static enum COLUMNS implements ColumnMetadata {
+        public static enum Columns implements ColumnMetadata {
         	%6$s;
 
             private final String mName;
             private final String mType;
 
-            private COLUMNS(final String name, String type) {
+            private Columns(final String name, String type) {
                 mName = name;
                 mType = type;
             }

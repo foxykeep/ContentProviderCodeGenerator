@@ -119,36 +119,36 @@ public class DatabaseGenerator {
                     }
                     sbEnumFields.append(", \"").append(fieldData.dbType).append("\")");
 
-                    sbProjection.append("COLUMNS.").append(fieldData.dbConstantName).append(".getName()");
+                    sbProjection.append("Columns.").append(fieldData.dbConstantName).append(".getName()");
 
-                    sbCreateTable.append("COLUMNS.").append(fieldData.dbConstantName).append(".getName() + \" \" + ").append("COLUMNS.")
+                    sbCreateTable.append("Columns.").append(fieldData.dbConstantName).append(".getName() + \" \" + ").append("Columns.")
                             .append(fieldData.dbConstantName).append(".getType()");
                     if (fieldData.dbIsPrimaryKey) {
                         if (hasPreviousPrimaryKey) {
                             sbCreateTablePrimaryKey.append(" + \", \" + ");
                         }
                         hasPreviousPrimaryKey = true;
-                        sbCreateTablePrimaryKey.append("COLUMNS.").append(fieldData.dbConstantName).append(".getName()");
+                        sbCreateTablePrimaryKey.append("Columns.").append(fieldData.dbConstantName).append(".getName()");
                     }
 
                     if (fieldData.dbHasIndex) {
                         sbIndexes.append("            db.execSQL(\"CREATE INDEX ").append(tableData.dbTableName).append("_").append(fieldData.dbName)
-                                .append(" on \" + TABLE_NAME + \"(\" + COLUMNS.").append(fieldData.dbConstantName).append(".getName() + \");\");\n");
+                                .append(" on \" + TABLE_NAME + \"(\" + Columns.").append(fieldData.dbConstantName).append(".getName() + \");\");\n");
                     }
 
-                    sbBulkFields.append(".append(").append("COLUMNS.").append(fieldData.dbConstantName).append(".getName())");
+                    sbBulkFields.append(".append(").append("Columns.").append(fieldData.dbConstantName).append(".getName())");
                     sbBulkParams.append("?");
                     if (fieldData.dbType.equals("text")) {
                         hasTextField = true;
-                        sbBulkValues.append("            value = values.getAsString(").append("COLUMNS.").append(fieldData.dbConstantName)
+                        sbBulkValues.append("            value = values.getAsString(").append("Columns.").append(fieldData.dbConstantName)
                                 .append(".getName());\n");
                         sbBulkValues.append("            stmt.bindString(i++, value != null ? value : \"\");\n");
                     } else if (fieldData.dbType.equals("integer")) {
-                        sbBulkValues.append("            stmt.bindLong(i++, values.getAsLong(").append("COLUMNS.").append(fieldData.dbConstantName)
+                        sbBulkValues.append("            stmt.bindLong(i++, values.getAsLong(").append("Columns.").append(fieldData.dbConstantName)
                                 .append(".getName()));\n");
                     } else if (fieldData.dbType.equals("real")) {
-                        sbBulkValues.append("            stmt.bindDouble(i++, values.getAsDouble(").append("COLUMNS.")
-                                .append(fieldData.dbConstantName).append(".getName()));\n");
+                        sbBulkValues.append("            stmt.bindDouble(i++, values.getAsDouble(").append("Columns.").append(fieldData.dbConstantName)
+                                .append(".getName()));\n");
                     }
 
                     if (isNotLast) {
@@ -176,8 +176,7 @@ public class DatabaseGenerator {
                             sbUpgradeTableComment.append(String.format(UPGRADE_VERSION_COMMENT_NOTHING, minUpgradeWithoutChanges));
                         } else {
                             // Multiple versions with changes
-                            sbUpgradeTableComment.append(String.format(UPGRADE_VERSION_COMMENT_NOTHING_MULTI, minUpgradeWithoutChanges,
-                                    currentVersion - 1));
+                            sbUpgradeTableComment.append(String.format(UPGRADE_VERSION_COMMENT_NOTHING_MULTI, minUpgradeWithoutChanges, currentVersion - 1));
                         }
 
                         minUpgradeWithoutChanges = -1;
@@ -206,14 +205,14 @@ public class DatabaseGenerator {
                         }
                         hasPreviousUpgradeElements = true;
 
-                        sbUpgradeTableCreateTmpTable.append("COLUMNS.").append(fieldData.dbConstantName).append(".getName() + \" \" + ")
-                                .append("COLUMNS.").append(fieldData.dbConstantName).append(".getType()");
+                        sbUpgradeTableCreateTmpTable.append("Columns.").append(fieldData.dbConstantName).append(".getName() + \" \" + ").append("Columns.")
+                                .append(fieldData.dbConstantName).append(".getType()");
                         if (fieldData.dbIsPrimaryKey) {
                             if (hasPreviousPrimaryKey) {
                                 sbUpgradeTableCreateTmpTablePrimaryKey.append(" + \", \" + ");
                             }
                             hasPreviousPrimaryKey = true;
-                            sbUpgradeTableCreateTmpTablePrimaryKey.append("COLUMNS.").append(fieldData.dbConstantName).append(".getName()");
+                            sbUpgradeTableCreateTmpTablePrimaryKey.append("Columns.").append(fieldData.dbConstantName).append(".getName()");
                         }
 
                         if (fieldData.version < currentVersion) {
@@ -223,8 +222,8 @@ public class DatabaseGenerator {
                             }
                             hasPreviousInsertFields = true;
 
-                            sbUpgradeTableInsertFields.append("COLUMNS.").append(fieldData.dbConstantName).append(".getName() + \" \" + ")
-                                    .append("COLUMNS.").append(fieldData.dbConstantName).append(".getType()");
+                            sbUpgradeTableInsertFields.append("Columns.").append(fieldData.dbConstantName).append(".getName() + \" \" + ").append("Columns.")
+                                    .append(fieldData.dbConstantName).append(".getType()");
                         } else {
                             // This field is a new one. so default value
                             if (hasPreviousInsertDefaultValues) {
@@ -249,8 +248,8 @@ public class DatabaseGenerator {
 
                         sbUpgradeTableCommentNewFields.append(fieldData.dbConstantName);
                     }
-                    sbUpgradeTableComment.append(String.format(UPGRADE_VERSION_COMMENT_FIELD, currentVersion,
-                            sbUpgradeTableCommentNewFields.toString(), upgradeFieldDataList.size() > 1 ? "s" : ""));
+                    sbUpgradeTableComment.append(String.format(UPGRADE_VERSION_COMMENT_FIELD, currentVersion, sbUpgradeTableCommentNewFields.toString(),
+                            upgradeFieldDataList.size() > 1 ? "s" : ""));
                 }
 
                 // No more changes for the last versions so add the code to jump to the latest version
@@ -266,17 +265,15 @@ public class DatabaseGenerator {
                     }
                 }
 
-                sbSubclasses.append(String.format(contentSubClass, tableData.dbClassName, classesPrefix, tableData.dbTableName,
-                        classesPrefix.toLowerCase(), tableData.dbTableName.toLowerCase(), sbEnumFields.toString(), sbProjection.toString(),
-                        sbCreateTable.toString(), hasPreviousPrimaryKey ? String.format(PRIMARY_KEY_FORMAT, sbCreateTablePrimaryKey.toString()) : "",
-                        sbIndexes.toString(), sbBulkFields.toString(), sbBulkParams.toString(), hasTextField ? BULK_STRING_VALUE : "",
-                        sbBulkValues.toString(), tableData.version, sbUpgradeTableComment.toString(), sbUpgradeTable.toString()));
+                sbSubclasses.append(String.format(contentSubClass, tableData.dbClassName, classesPrefix, tableData.dbTableName, classesPrefix.toLowerCase(),
+                        tableData.dbTableName.toLowerCase(), sbEnumFields.toString(), sbProjection.toString(), sbCreateTable.toString(),
+                        hasPreviousPrimaryKey ? String.format(PRIMARY_KEY_FORMAT, sbCreateTablePrimaryKey.toString()) : "", sbIndexes.toString(), sbBulkFields
+                                .toString(), sbBulkParams.toString(), hasTextField ? BULK_STRING_VALUE : "", sbBulkValues.toString(), tableData.version,
+                        sbUpgradeTableComment.toString(), sbUpgradeTable.toString()));
             }
 
-            FileCache.saveFile(
-                    PathUtils.getAndroidFullPath(fileName, classPackage, providerFolder) + classesPrefix + "Content.java",
-                    String.format(contentClass, classPackage, classesPrefix, sbSubclasses.toString(), providerFolder, providerFolder + "."
-                            + PathUtils.UTIL));
+            FileCache.saveFile(PathUtils.getAndroidFullPath(fileName, classPackage, providerFolder) + classesPrefix + "Content.java",
+                    String.format(contentClass, classPackage, classesPrefix, sbSubclasses.toString(), providerFolder, providerFolder + "." + PathUtils.UTIL));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             return;
@@ -339,16 +336,16 @@ public class DatabaseGenerator {
                     .append(Integer.toHexString(i).toUpperCase()).append("000;\n");
             sbTableConstants.append("    private static final int ").append(TableData.dbConstantName).append(" = ").append(TableData.dbConstantName)
                     .append("_BASE;\n");
-            sbTableConstants.append("    private static final int ").append(TableData.dbConstantName).append("_ID = ")
-                    .append(TableData.dbConstantName).append("_BASE + 1;\n\n");
+            sbTableConstants.append("    private static final int ").append(TableData.dbConstantName).append("_ID = ").append(TableData.dbConstantName)
+                    .append("_BASE + 1;\n\n");
 
             sbTableNames.append(TableData.dbClassName).append(".TABLE_NAME");
             if (i != TableDataListSize - 1) {
                 sbTableNames.append(", ");
             }
 
-            sbUriMatcher.append("        matcher.addURI(AUTHORITY, ").append(TableData.dbClassName).append(".TABLE_NAME, ")
-                    .append(TableData.dbConstantName).append(");\n");
+            sbUriMatcher.append("        matcher.addURI(AUTHORITY, ").append(TableData.dbClassName).append(".TABLE_NAME, ").append(TableData.dbConstantName)
+                    .append(");\n");
             sbUriMatcher.append("        matcher.addURI(AUTHORITY, ").append(TableData.dbClassName).append(".TABLE_NAME + \"/#\", ")
                     .append(TableData.dbConstantName).append("_ID);");
             sbUriMatcher.append("\n");
@@ -403,8 +400,8 @@ public class DatabaseGenerator {
                     }
 
                     appendUpgradeDatabaseComment(sbUpgradeDatabaseComment, firstElem, minUpgradeWithoutChanges, currentVersion, String.format(
-                            PROVIDER_UPGRADE_ADD_FIELD, sbUpgradeDatabaseCommentFields.toString(), tableData.dbClassName,
-                            upgradeFieldList.size() > 1 ? "s" : ""));
+                            PROVIDER_UPGRADE_ADD_FIELD, sbUpgradeDatabaseCommentFields.toString(), tableData.dbClassName, upgradeFieldList.size() > 1 ? "s"
+                                    : ""));
                     firstElem = false;
                     minUpgradeWithoutChanges = -1;
                 }
@@ -419,19 +416,18 @@ public class DatabaseGenerator {
         if (minUpgradeWithoutChanges != -1) {
             if (minUpgradeWithoutChanges == dbVersion) {
                 // Only one without change
-                sbUpgradeDatabaseComment.append(String
-                        .format(PROVIDER_UPGRADE_VERSION_VERSION, minUpgradeWithoutChanges, PROVIDER_UPGRADE_NO_CHANGES));
+                sbUpgradeDatabaseComment.append(String.format(PROVIDER_UPGRADE_VERSION_VERSION, minUpgradeWithoutChanges, PROVIDER_UPGRADE_NO_CHANGES));
             } else {
                 // Multiple versions with changes
-                sbUpgradeDatabaseComment.append(String.format(PROVIDER_UPGRADE_VERSION_MULTI, minUpgradeWithoutChanges, dbVersion,
-                        PROVIDER_UPGRADE_NO_CHANGES));
+                sbUpgradeDatabaseComment
+                        .append(String.format(PROVIDER_UPGRADE_VERSION_MULTI, minUpgradeWithoutChanges, dbVersion, PROVIDER_UPGRADE_NO_CHANGES));
             }
         }
 
-        FileCache.saveFile(PathUtils.getAndroidFullPath(fileName, classPackage, providerFolder) + classesPrefix + "Provider.java", String.format(
-                sb.toString(), classPackage, sbImports.toString(), classesPrefix, dbAuthorityPackage, sbTableConstants.toString(),
-                sbTableNames.toString(), sbUriMatcher.toString(), sbCreateTables.toString(), sbUpgradeTables.toString(), sbCaseWithId.toString(),
-                sbCaseWithoutId.toString(), sbGetType.toString(), sbBulk.toString(), providerFolder, dbVersion, sbUpgradeDatabaseComment.toString()));
+        FileCache.saveFile(PathUtils.getAndroidFullPath(fileName, classPackage, providerFolder) + classesPrefix + "Provider.java", String.format(sb.toString(),
+                classPackage, sbImports.toString(), classesPrefix, dbAuthorityPackage, sbTableConstants.toString(), sbTableNames.toString(),
+                sbUriMatcher.toString(), sbCreateTables.toString(), sbUpgradeTables.toString(), sbCaseWithId.toString(), sbCaseWithoutId.toString(),
+                sbGetType.toString(), sbBulk.toString(), providerFolder, dbVersion, sbUpgradeDatabaseComment.toString()));
 
     }
 

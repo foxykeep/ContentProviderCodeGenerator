@@ -1,3 +1,4 @@
+// Don't use this file if you want to try the generator. Use sample.json or sample_with_version.json
 {
 	"database":
 	{

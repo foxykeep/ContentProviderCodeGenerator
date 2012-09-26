@@ -25,10 +25,18 @@ In order to use it, here are the steps to follow :
 4. Run the project as a Java application.
 5. Your classes are available in the output folder
 
+
 Example
 -------
 
 You can find in the 'sample' folder an example of an Android application which uses the generated ContentProvider
+
+
+TODO
+----
+
+- Add a sample project who uses a generated ContentProvider
+
 
 Credits and License
 -------------------

@@ -35,7 +35,7 @@ You can find in the 'sample' folder an example of an Android application which u
 TODO
 ----
 
-- Add a sample project who uses a generated ContentProvider
+- Add a sample project which uses a generated ContentProvider
 
 
 Credits and License

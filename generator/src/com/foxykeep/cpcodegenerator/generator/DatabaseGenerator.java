@@ -18,6 +18,8 @@ public class DatabaseGenerator {
     private static final String BULK_STRING_VALUE = "            String value;\n";
     private static final String PRIMARY_KEY_FORMAT = " + \", PRIMARY KEY (\" + %1$s + \")\"";
 
+    private static final String URI_TYPE_FORMAT = "        %1$s(%2$s.TABLE_NAME%3$s, %2$s.TABLE_NAME, %2$s.%4$s)%5$s\n";
+
     private static final String UPGRADE_VERSION_COMMENT_NOTHING = "        // Version %1$d : No changes\n";
     private static final String UPGRADE_VERSION_COMMENT_NOTHING_MULTI = "        // Version %1$d - %2$d : No changes\n";
     private static final String UPGRADE_VERSION_COMMENT_FIELD = "        // Version %1$d : Add field%3$s %2$s\n";
@@ -337,14 +339,11 @@ public class DatabaseGenerator {
             final ArrayList<TableData> tableDataList, final String providerFolder) {
 
         final StringBuilder sbImports = new StringBuilder();
-        final StringBuilder sbTableConstants = new StringBuilder();
-        final StringBuilder sbTableNames = new StringBuilder();
-        final StringBuilder sbUriMatcher = new StringBuilder();
+        final StringBuilder sbUriTypes = new StringBuilder();
         final StringBuilder sbCreateTables = new StringBuilder();
         final StringBuilder sbUpgradeTables = new StringBuilder();
         final StringBuilder sbCaseWithId = new StringBuilder();
         final StringBuilder sbCaseWithoutId = new StringBuilder();
-        final StringBuilder sbGetType = new StringBuilder();
         final StringBuilder sbBulk = new StringBuilder();
         final StringBuilder sbUpgradeDatabaseComment = new StringBuilder();
         final StringBuilder sbUpgradeDatabaseCommentFields = new StringBuilder();
@@ -375,71 +374,48 @@ public class DatabaseGenerator {
             return;
         }
 
-        final int TableDataListSize = tableDataList.size();
-        for (int i = 0; i < TableDataListSize; i++) {
-            final TableData TableData = tableDataList.get(i);
+        final int tableDataListSize = tableDataList.size();
+        for (int i = 0; i < tableDataListSize; i++) {
+            final TableData tableData = tableDataList.get(i);
 
             sbImports.append("import ").append(classPackage).append(".").append(providerFolder)
                     .append(".").append(classesPrefix).append("Content.")
-                    .append(TableData.dbClassName).append(";\n");
+                    .append(tableData.dbClassName).append(";\n");
 
-            sbTableConstants.append("    private static final int ")
-                    .append(TableData.dbConstantName).append("_BASE = 0x")
-                    .append(Integer.toHexString(i).toUpperCase()).append("000;\n");
-            sbTableConstants.append("    private static final int ")
-                    .append(TableData.dbConstantName).append(" = ")
-                    .append(TableData.dbConstantName).append("_BASE;\n");
-            sbTableConstants.append("    private static final int ")
-                    .append(TableData.dbConstantName).append("_ID = ")
-                    .append(TableData.dbConstantName).append("_BASE + 1;\n\n");
-
-            sbTableNames.append(TableData.dbClassName).append(".TABLE_NAME");
-            if (i != TableDataListSize - 1) {
-                sbTableNames.append(", ");
-            }
-
-            sbUriMatcher.append("        matcher.addURI(AUTHORITY, ").append(TableData.dbClassName)
-                    .append(".TABLE_NAME, ").append(TableData.dbConstantName).append(");\n");
-            sbUriMatcher.append("        matcher.addURI(AUTHORITY, ").append(TableData.dbClassName)
-                    .append(".TABLE_NAME + \"/#\", ").append(TableData.dbConstantName)
-                    .append("_ID);");
-            sbUriMatcher.append("\n");
+            sbUriTypes.append(String.format(URI_TYPE_FORMAT, tableData.dbConstantName,
+                    tableData.dbClassName, "", "TYPE_ELEM_DIR", ","));
+            sbUriTypes.append(String.format(URI_TYPE_FORMAT, tableData.dbConstantName,
+                    tableData.dbClassName, " + \"/#\"", "TYPE_TYPE_DIR",
+                    i != tableDataListSize - 1 ? "," : ";"));
 
             sbCreateTables
                     .append("            if (ACTIVATE_ALL_LOGS) {\n                Log.d(LOG_TAG, \"")
-                    .append(TableData.dbClassName)
+                    .append(tableData.dbClassName)
                     .append(" | createTable start\");\n            }\n");
-            sbCreateTables.append("            ").append(TableData.dbClassName)
+            sbCreateTables.append("            ").append(tableData.dbClassName)
                     .append(".createTable(db);\n");
             sbCreateTables
                     .append("            if (ACTIVATE_ALL_LOGS) {\n                Log.d(LOG_TAG, \"")
-                    .append(TableData.dbClassName)
+                    .append(tableData.dbClassName)
                     .append(" | createTable end\");\n            }\n");
 
             sbUpgradeTables
                     .append("            if (ACTIVATE_ALL_LOGS) {\n                Log.d(LOG_TAG, \"")
-                    .append(TableData.dbClassName)
+                    .append(tableData.dbClassName)
                     .append(" | upgradeTable start\");\n            }\n");
-            sbUpgradeTables.append("            ").append(TableData.dbClassName)
+            sbUpgradeTables.append("            ").append(tableData.dbClassName)
                     .append(".upgradeTable(db, oldVersion, newVersion);\n");
             sbUpgradeTables
                     .append("            if (ACTIVATE_ALL_LOGS) {\n                Log.d(LOG_TAG, \"")
-                    .append(TableData.dbClassName)
+                    .append(tableData.dbClassName)
                     .append(" | upgradeTable end\");\n            }\n");
 
-            sbCaseWithId.append("            case ").append(TableData.dbConstantName)
+            sbCaseWithId.append("            case ").append(tableData.dbConstantName)
                     .append("_ID:\n");
-            sbCaseWithoutId.append("            case ").append(TableData.dbConstantName)
+            sbCaseWithoutId.append("            case ").append(tableData.dbConstantName)
                     .append(":\n");
 
-            sbGetType.append("            case ").append(TableData.dbConstantName).append("_ID:\n");
-            sbGetType.append("                return ").append(TableData.dbClassName)
-                    .append(".TYPE_ELEM_TYPE;\n");
-            sbGetType.append("            case ").append(TableData.dbConstantName).append(":\n");
-            sbGetType.append("                return ").append(TableData.dbClassName)
-                    .append(".TYPE_DIR_TYPE;\n");
-
-            sbBulk.append(String.format(bulkText, TableData.dbConstantName, TableData.dbClassName));
+            sbBulk.append(String.format(bulkText, tableData.dbConstantName, tableData.dbClassName));
         }
 
         // Upgrade comments in the provider
@@ -500,11 +476,10 @@ public class DatabaseGenerator {
 
         FileCache.saveFile(PathUtils.getAndroidFullPath(fileName, classPackage, providerFolder)
                 + classesPrefix + "Provider.java", String.format(sb.toString(), classPackage,
-                sbImports.toString(), classesPrefix, dbAuthorityPackage,
-                sbTableConstants.toString(), sbTableNames.toString(), sbUriMatcher.toString(),
+                sbImports.toString(), classesPrefix, dbAuthorityPackage, sbUriTypes.toString(),
                 sbCreateTables.toString(), sbUpgradeTables.toString(), sbCaseWithId.toString(),
-                sbCaseWithoutId.toString(), sbGetType.toString(), sbBulk.toString(),
-                providerFolder, dbVersion, sbUpgradeDatabaseComment.toString()));
+                sbCaseWithoutId.toString(), sbBulk.toString(), providerFolder, dbVersion,
+                sbUpgradeDatabaseComment.toString()));
 
     }
 

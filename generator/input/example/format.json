@@ -22,9 +22,9 @@
 					"is_index":true, // Optional. Whether the field needs to have an index added to it in the database. Should be set to true for text field which will have a where clause used on them. Default is false.
                     "version":1 // Optional. Version of the database where this field is added to the table. Default is the table creation version.
 				},
-                {…}
+                {...}
 			]
 		},
-        {…}
+        {...}
 	]
 }

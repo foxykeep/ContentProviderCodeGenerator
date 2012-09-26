@@ -18,7 +18,7 @@ public class DatabaseGenerator {
     private static final String BULK_STRING_VALUE = "            String value;\n";
     private static final String PRIMARY_KEY_FORMAT = " + \", PRIMARY KEY (\" + %1$s + \")\"";
 
-    private static final String URI_TYPE_FORMAT = "        %1$s(%2$s.TABLE_NAME%3$s, %2$s.TABLE_NAME, %2$s.%4$s)%5$s\n";
+    private static final String URI_TYPE_FORMAT = "        %1$s%2$s(%3$s.TABLE_NAME%4$s, %3$s.TABLE_NAME, %3$s.%5$s)%6$s\n";
 
     private static final String UPGRADE_VERSION_COMMENT_NOTHING = "        // Version %1$d : No changes\n";
     private static final String UPGRADE_VERSION_COMMENT_NOTHING_MULTI = "        // Version %1$d - %2$d : No changes\n";
@@ -382,10 +382,10 @@ public class DatabaseGenerator {
                     .append(".").append(classesPrefix).append("Content.")
                     .append(tableData.dbClassName).append(";\n");
 
-            sbUriTypes.append(String.format(URI_TYPE_FORMAT, tableData.dbConstantName,
-                    tableData.dbClassName, "", "TYPE_ELEM_DIR", ","));
-            sbUriTypes.append(String.format(URI_TYPE_FORMAT, tableData.dbConstantName,
-                    tableData.dbClassName, " + \"/#\"", "TYPE_TYPE_DIR",
+            sbUriTypes.append(String.format(URI_TYPE_FORMAT, tableData.dbConstantName, "",
+                    tableData.dbClassName, "", "TYPE_ELEM_TYPE", ","));
+            sbUriTypes.append(String.format(URI_TYPE_FORMAT, tableData.dbConstantName, "_ID",
+                    tableData.dbClassName, " + \"/#\"", "TYPE_DIR_TYPE",
                     i != tableDataListSize - 1 ? "," : ";"));
 
             sbCreateTables

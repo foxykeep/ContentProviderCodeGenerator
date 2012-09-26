@@ -38,6 +38,8 @@ public class %3$sProvider extends ContentProvider {
     // Version 1 : Creation of the database
 %13$s    public static final int DATABASE_VERSION = %12$d;
 
+    private static final UriMatcher sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+
 	private enum UriType {
 %5$s        
         private String mTableName;
@@ -46,7 +48,7 @@ public class %3$sProvider extends ContentProvider {
         UriType(String matchPath, String tableName, String type) {
             mTableName = tableName;
             mType = type;
-            sUriMatcher.addURI(GamesContract.AUTHORITY, matchPath, ordinal());
+            sUriMatcher.addURI(AUTHORITY, matchPath, ordinal());
         }
         
         String getTableName() {
@@ -117,7 +119,7 @@ public class %3$sProvider extends ContentProvider {
         String id = "0";
 
         if (ACTIVATE_ALL_LOGS) {
-            Log.d(LOG_TAG, "delete: uri=" + uri + ", match is " + match);
+            Log.d(LOG_TAG, "delete: uri=" + uri + ", match is " + uriType.name());
         }
 
         int result = -1;
@@ -150,7 +152,7 @@ public class %3$sProvider extends ContentProvider {
         long id;
 
         if (ACTIVATE_ALL_LOGS) {
-            Log.d(LOG_TAG, "insert: uri=" + uri + ", match is " + match);
+            Log.d(LOG_TAG, "insert: uri=" + uri + ", match is " + uriType.name());
         }
 
         Uri resultUri = null;
@@ -197,15 +199,15 @@ public class %3$sProvider extends ContentProvider {
         final SQLiteDatabase db = getDatabase(context);
 
         if (ACTIVATE_ALL_LOGS) {
-            Log.d(LOG_TAG, "bulkInsert: uri=" + uri + ", match is " + match);
+            Log.d(LOG_TAG, "bulkInsert: uri=" + uri + ", match is " + uriType.name());
         }
 
         int numberInserted = 0;
         SQLiteStatement insertStmt;
 
         db.beginTransaction();
-        try {
-            switch (match) {
+        try { 
+            switch (uriType) {
 %10$s                default:
                     throw new IllegalArgumentException("Unknown URI " + uri);
             }
@@ -231,7 +233,7 @@ public class %3$sProvider extends ContentProvider {
         String id;
 
         if (ACTIVATE_ALL_LOGS) {
-            Log.d(LOG_TAG, "query: uri=" + uri + ", match is " + match);
+            Log.d(LOG_TAG, "query: uri=" + uri + ", match is " + uriType.name());
         }
 
         switch (uriType) {
@@ -264,15 +266,17 @@ public class %3$sProvider extends ContentProvider {
     @Override
     public int update(final Uri uri, final ContentValues values, final String selection, final String[] selectionArgs) {
 
-        final UriType uriType = matchUri(uri)l
+        final UriType uriType = matchUri(uri);
         final Context context = getContext();
+        
         // Pick the correct database for this operation
         final SQLiteDatabase db = getDatabase(context);
-        int result;
-
+        
         if (ACTIVATE_ALL_LOGS) {
-            Log.d(LOG_TAG, "update: uri=" + uri + ", match is " + match);
+            Log.d(LOG_TAG, "update: uri=" + uri + ", match is " + uriType.name());
         }
+
+        int result = -1;
 
         switch (uriType) {
 %8$s                final String id = uri.getPathSegments().get(1);

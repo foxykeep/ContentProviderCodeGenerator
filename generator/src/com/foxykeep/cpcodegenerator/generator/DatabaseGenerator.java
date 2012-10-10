@@ -41,6 +41,7 @@ public class DatabaseGenerator {
             final ArrayList<TableData> tableDataList, final String providerFolder) {
         if (classPackage == null || classPackage.length() == 0 || classesPrefix == null
                 || classesPrefix.length() == 0 || tableDataList == null || tableDataList.isEmpty()) {
+        	System.out.println("Error : You must provide a class package, a class prefix and a database structure");
             return;
         }
         generateContentClass(fileName, classPackage, classesPrefix, tableDataList, dbVersion,

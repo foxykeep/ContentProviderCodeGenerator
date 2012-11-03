@@ -13,4 +13,4 @@
 			            Log.d(LOG_TAG, "bulkInsert: uri=" + uri + " | nb inserts : " + numberInserted);
 			        }
                     break;
-                    
+

@@ -60,7 +60,7 @@
 		},
 		{
 	        "table_name":"WishList",
-            "version":3
+            "version":3,
 			"fields":[
 				{
 		            "name":"id",

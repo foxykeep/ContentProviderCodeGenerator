@@ -16,7 +16,7 @@ import %1$s.%5$s.ColumnMetadata;
 public abstract class %2$sContent {
 
     public static final Uri CONTENT_URI = Uri.parse("content://" + %2$sProvider.AUTHORITY);
-    
+
     private %2$sContent() {
     }
 %3$s}

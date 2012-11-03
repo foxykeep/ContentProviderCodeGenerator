@@ -1,9 +1,9 @@
 
 	/**
 	 * Created in version %15$d
-	 */    
+	 */
     public static final class %1$s extends %2$sContent {
-    
+
     	private static final String LOG_TAG = %1$s.class.getSimpleName();
 
         public static final String TABLE_NAME = "%3$s";
@@ -38,7 +38,7 @@
                 return mType;
             }
         }
-        
+
         public static final String[] PROJECTION = new String[] {
                 %7$s
         };
@@ -57,7 +57,7 @@
                 db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME + ";");
                 createTable(db);
                 return;
-            }      
+            }
 %17$s
 
             if (oldVersion != newVersion) {

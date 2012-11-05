@@ -51,7 +51,7 @@
 		// Version %15$d : Creation of the table
 %16$s        public static void upgradeTable(final SQLiteDatabase db, int oldVersion, final int newVersion) {
 
-            if (oldVersion < 1) {
+            if (oldVersion < newVersion) {
                 Log.i(LOG_TAG, "Upgrading from version " + oldVersion + " to " + newVersion + ", data will be lost!");
 
                 db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME + ";");

@@ -1,4 +1,10 @@
+
 package com.foxykeep.cpcodegenerator.generator;
+
+import com.foxykeep.cpcodegenerator.FileCache;
+import com.foxykeep.cpcodegenerator.model.FieldData;
+import com.foxykeep.cpcodegenerator.model.TableData;
+import com.foxykeep.cpcodegenerator.util.PathUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -8,12 +14,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.foxykeep.cpcodegenerator.FileCache;
-import com.foxykeep.cpcodegenerator.model.FieldData;
-import com.foxykeep.cpcodegenerator.model.TableData;
-import com.foxykeep.cpcodegenerator.util.PathUtils;
-
 public class DatabaseGenerator {
+
+    private static final String TAB1 = "    ";
+    private static final String TAB2 = TAB1 + TAB1;
+    private static final String TAB3 = TAB2 + TAB1;
+    private static final String TAB4 = TAB3 + TAB1;
 
     private static final String BULK_STRING_VALUE = "            String value;\n";
     private static final String PRIMARY_KEY_FORMAT = " + \", PRIMARY KEY (\" + %1$s + \")\"";
@@ -41,7 +47,8 @@ public class DatabaseGenerator {
             final ArrayList<TableData> tableDataList, final String providerFolder) {
         if (classPackage == null || classPackage.length() == 0 || classesPrefix == null
                 || classesPrefix.length() == 0 || tableDataList == null || tableDataList.isEmpty()) {
-        	System.out.println("Error : You must provide a class package, a class prefix and a database structure");
+            System.out
+                    .println("Error : You must provide a class package, a class prefix and a database structure");
             return;
         }
         generateContentClass(fileName, classPackage, classesPrefix, tableDataList, dbVersion,
@@ -96,7 +103,9 @@ public class DatabaseGenerator {
             final StringBuilder sbBulkParams = new StringBuilder();
             final StringBuilder sbBulkValues = new StringBuilder();
 
-            boolean hasPreviousPrimaryKey = false, hasPreviousInsertFields = false, hasPreviousInsertDefaultValues = false, hasTextField = false, hasPreviousUpgradeElements = true;
+            boolean hasPreviousPrimaryKey = false, hasPreviousInsertFields = false,
+                    hasPreviousInsertDefaultValues = false, hasTextField = false,
+                    hasPreviousUpgradeElements = true;
             int maxUpgradeVersion = 1, minUpgradeWithoutChanges = 1;
 
             for (TableData tableData : tableDataList) {
@@ -118,59 +127,72 @@ public class DatabaseGenerator {
 
                     final boolean isNotLast = i != n - 1;
 
-                    sbEnumFields.append(fieldData.dbConstantName).append("(");
+                    sbEnumFields.append(TAB3)
+                            .append(fieldData.dbConstantName)
+                            .append("(");
                     if (fieldData.dbIsPrimaryKey) {
                         sbEnumFields.append("BaseColumns._ID");
                     } else {
-                        sbEnumFields.append("\"").append(fieldData.dbName).append("\"");
+                        sbEnumFields.append("\"")
+                                .append(fieldData.dbName)
+                                .append("\"");
                     }
-                    sbEnumFields.append(", \"").append(fieldData.dbType).append("\")");
+                    sbEnumFields.append(", \"")
+                            .append(fieldData.dbType)
+                            .append("\")");
 
-                    sbProjection.append("Columns.").append(fieldData.dbConstantName)
-                            .append(".getName()");
+                    sbProjection.append(TAB4)
+                            .append("Columns.")
+                            .append(fieldData.dbConstantName).append(".getName()");
 
-                    sbCreateTable.append("Columns.").append(fieldData.dbConstantName)
-                            .append(".getName() + \" \" + ").append("Columns.")
+                    sbCreateTable.append("Columns.")
+                            .append(fieldData.dbConstantName).append(".getName() + \" \" + ")
+                            .append("Columns.")
                             .append(fieldData.dbConstantName).append(".getType()");
                     if (fieldData.dbIsPrimaryKey) {
                         if (hasPreviousPrimaryKey) {
                             sbCreateTablePrimaryKey.append(" + \", \" + ");
                         }
                         hasPreviousPrimaryKey = true;
-                        sbCreateTablePrimaryKey.append("Columns.").append(fieldData.dbConstantName)
-                                .append(".getName()");
+                        sbCreateTablePrimaryKey.append("Columns.")
+                                .append(fieldData.dbConstantName).append(".getName()");
                     }
 
                     if (fieldData.dbHasIndex) {
-                        sbIndexes.append("            db.execSQL(\"CREATE INDEX ")
+                        sbIndexes.append(TAB3)
+                                .append("db.execSQL(\"CREATE INDEX ")
                                 .append(tableData.dbTableName).append("_").append(fieldData.dbName)
                                 .append(" on \" + TABLE_NAME + \"(\" + Columns.")
                                 .append(fieldData.dbConstantName).append(".getName() + \");\");\n");
                     }
 
-                    sbBulkFields.append(".append(").append("Columns.")
+                    sbBulkFields.append(".append(")
+                            .append("Columns.")
                             .append(fieldData.dbConstantName).append(".getName())");
                     sbBulkParams.append("?");
                     if (fieldData.dbType.equals("text")) {
                         hasTextField = true;
-                        sbBulkValues.append("            value = values.getAsString(")
-                                .append("Columns.").append(fieldData.dbConstantName)
-                                .append(".getName());\n");
-                        sbBulkValues
-                                .append("            stmt.bindString(i++, value != null ? value : \"\");\n");
+                        sbBulkValues.append(TAB3)
+                                .append("value = values.getAsString(")
+                                .append("Columns.")
+                                .append(fieldData.dbConstantName).append(".getName());\n");
+                        sbBulkValues.append(TAB3)
+                                .append("stmt.bindString(i++, value != null ? value : \"\");\n");
                     } else if (fieldData.dbType.equals("integer")) {
-                        sbBulkValues.append("            stmt.bindLong(i++, values.getAsLong(")
-                                .append("Columns.").append(fieldData.dbConstantName)
-                                .append(".getName()));\n");
+                        sbBulkValues.append(TAB3)
+                                .append("stmt.bindLong(i++, values.getAsLong(")
+                                .append("Columns.")
+                                .append(fieldData.dbConstantName).append(".getName()));\n");
                     } else if (fieldData.dbType.equals("real")) {
-                        sbBulkValues.append("            stmt.bindDouble(i++, values.getAsDouble(")
-                                .append("Columns.").append(fieldData.dbConstantName)
-                                .append(".getName()));\n");
+                        sbBulkValues.append(TAB3)
+                                .append("stmt.bindDouble(i++, values.getAsDouble(")
+                                .append("Columns.")
+                                .append(fieldData.dbConstantName).append(".getName()));\n");
                     }
 
                     if (isNotLast) {
-                        sbEnumFields.append(", ");
-                        sbProjection.append(", ");
+                        sbEnumFields.append(",\n");
+                        sbProjection.append(",\n");
                         sbCreateTable.append(" + \", \" + ");
                         sbBulkFields.append(".append(\", \")");
                         sbBulkParams.append(", ");
@@ -180,16 +202,16 @@ public class DatabaseGenerator {
                 // Upgrade management
                 maxUpgradeVersion = tableData.version;
                 minUpgradeWithoutChanges = -1;
-                for (int currentVersion = tableData.version + 1, n = dbVersion; currentVersion <= n; currentVersion++) {
+                for (int curVers = tableData.version + 1, n = dbVersion; curVers <= n; curVers++) {
                     final List<FieldData> upgradeFieldDataList = tableData.upgradeFieldMap
-                            .get(currentVersion);
+                            .get(curVers);
                     if (upgradeFieldDataList == null) {
                         if (minUpgradeWithoutChanges == -1) {
-                            minUpgradeWithoutChanges = currentVersion;
+                            minUpgradeWithoutChanges = curVers;
                         }
                         continue;
                     } else if (minUpgradeWithoutChanges != -1) {
-                        if (minUpgradeWithoutChanges == currentVersion - 1) {
+                        if (minUpgradeWithoutChanges == curVers - 1) {
                             // Only one without change
                             sbUpgradeTableComment.append(String.format(
                                     UPGRADE_VERSION_COMMENT_NOTHING, minUpgradeWithoutChanges));
@@ -197,13 +219,13 @@ public class DatabaseGenerator {
                             // Multiple versions with changes
                             sbUpgradeTableComment.append(String.format(
                                     UPGRADE_VERSION_COMMENT_NOTHING_MULTI,
-                                    minUpgradeWithoutChanges, currentVersion - 1));
+                                    minUpgradeWithoutChanges, curVers - 1));
                         }
 
                         minUpgradeWithoutChanges = -1;
                     }
 
-                    maxUpgradeVersion = currentVersion;
+                    maxUpgradeVersion = curVers;
 
                     sbUpgradeTableCommentNewFields.setLength(0);
                     sbUpgradeTableCreateTmpTable.setLength(0);
@@ -216,7 +238,7 @@ public class DatabaseGenerator {
                     hasPreviousPrimaryKey = false;
 
                     for (FieldData fieldData : tableData.fieldList) {
-                        if (fieldData.version > currentVersion) {
+                        if (fieldData.version > curVers) {
                             // This field doesn't exist yet in this version
                             continue;
                         }
@@ -239,7 +261,7 @@ public class DatabaseGenerator {
                                     .append(fieldData.dbConstantName).append(".getName()");
                         }
 
-                        if (fieldData.version < currentVersion) {
+                        if (fieldData.version < curVers) {
                             // The field is an old one and is added to the insert list
                             if (hasPreviousInsertFields) {
                                 sbUpgradeTableInsertFields.append(" + \", \" + ");
@@ -264,7 +286,7 @@ public class DatabaseGenerator {
 
                     sbUpgradeTable.append(String.format(
                             contentSubClassUpgrade,
-                            currentVersion,
+                            curVers,
                             sbUpgradeTableCreateTmpTable.toString(),
                             hasPreviousPrimaryKey ? String.format(PRIMARY_KEY_FORMAT,
                                     sbUpgradeTableCreateTmpTablePrimaryKey.toString()) : "",
@@ -281,11 +303,12 @@ public class DatabaseGenerator {
                         sbUpgradeTableCommentNewFields.append(fieldData.dbConstantName);
                     }
                     sbUpgradeTableComment.append(String.format(UPGRADE_VERSION_COMMENT_FIELD,
-                            currentVersion, sbUpgradeTableCommentNewFields.toString(),
+                            curVers, sbUpgradeTableCommentNewFields.toString(),
                             upgradeFieldDataList.size() > 1 ? "s" : ""));
                 }
 
-                // No more changes for the last versions so add the code to jump to the latest version
+                // No more changes for the last versions so add the code to jump to the latest
+                // version
                 if (maxUpgradeVersion != dbVersion) {
                     sbUpgradeTable.append(String.format(UPGRADE_VERSION_JUMP_TO_LATEST,
                             maxUpgradeVersion));

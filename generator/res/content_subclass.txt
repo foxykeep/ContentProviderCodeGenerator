@@ -13,12 +13,12 @@
         public static final Uri CONTENT_URI = Uri.parse(%2$sContent.CONTENT_URI + "/" + TABLE_NAME);
 
         public static enum Columns implements ColumnMetadata {
-        	%6$s;
+%6$s;
 
             private final String mName;
             private final String mType;
 
-            private Columns(final String name, String type) {
+            private Columns(String name, String type) {
                 mName = name;
                 mType = type;
             }
@@ -40,19 +40,24 @@
         }
 
         public static final String[] PROJECTION = new String[] {
-                %7$s
+%7$s
         };
 
-        public static void createTable(final SQLiteDatabase db) {
+        private %1$s() {
+            // No private constructor
+        }
+
+        public static void createTable(SQLiteDatabase db) {
             db.execSQL("CREATE TABLE " + TABLE_NAME + " (" + %8$s%9$s + ");");
 
 %10$s        }
 
 		// Version %15$d : Creation of the table
-%16$s        public static void upgradeTable(final SQLiteDatabase db, int oldVersion, final int newVersion) {
+%16$s        public static void upgradeTable(SQLiteDatabase db, int oldVersion, int newVersion) {
 
             if (oldVersion < 1) {
-                Log.i(LOG_TAG, "Upgrading from version " + oldVersion + " to " + newVersion + ", data will be lost!");
+                Log.i(LOG_TAG, "Upgrading from version " + oldVersion + " to " + newVersion 
+                        + ", data will be lost!");
 
                 db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME + ";");
                 createTable(db);
@@ -61,7 +66,8 @@
 %17$s
 
             if (oldVersion != newVersion) {
-                throw new IllegalStateException("Error upgrading the database to version " + newVersion);
+                throw new IllegalStateException("Error upgrading the database to version " 
+                        + newVersion);
             }
         }
 
@@ -69,7 +75,7 @@
             return new StringBuilder("INSERT INTO ").append(TABLE_NAME).append(" ( ")%11$s.append(" ) VALUES (%12$s)").toString();
         }
 
-        static void bindValuesInBulkInsert(final SQLiteStatement stmt, final ContentValues values) {
+        static void bindValuesInBulkInsert(SQLiteStatement stmt, ContentValues values) {
             int i = 1;
 %13$s%14$s        }
     }

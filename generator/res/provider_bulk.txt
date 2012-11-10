@@ -1,6 +1,6 @@
                 case %1$s:
                     insertStmt = db.compileStatement(%2$s.getBulkInsertString());
-                    for (final ContentValues value : values) {
+                    for (ContentValues value : values) {
                         %2$s.bindValuesInBulkInsert(insertStmt, value);
                         insertStmt.execute();
                         insertStmt.clearBindings();

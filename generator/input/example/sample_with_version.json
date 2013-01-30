@@ -66,6 +66,7 @@
 		            "name":"id",
 					"type":"integer",
 					"is_primary_key":true,
+					"skip_bulk_insert":true,
 					"is_id":true
 	        	},
 				{

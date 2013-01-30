@@ -1,9 +1,9 @@
 package com.foxykeep.cpcodegenerator.model;
 
+import com.foxykeep.cpcodegenerator.util.NameUtils;
+
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import com.foxykeep.cpcodegenerator.util.NameUtils;
 
 public class FieldData {
 
@@ -18,6 +18,7 @@ public class FieldData {
     public boolean dbIsPrimaryKey;
     public boolean dbIsId;
     public boolean dbHasIndex;
+    public boolean dbSkipBulkInsert;
 
     public FieldData(final JSONObject json) throws JSONException {
         name = json.getString("name");
@@ -34,12 +35,15 @@ public class FieldData {
             dbName = name;
         }
         dbHasIndex = !dbIsPrimaryKey && json.optBoolean("is_index", false);
+
+        dbSkipBulkInsert = json.optBoolean("skip_bulk_insert", false);
     }
 
     private void setType(final String type) {
         this.type = type;
 
-        if (type.equals("int") || type.equals("integer") || type.equals("long") || type.equals("boolean") || type.equals("date")) {
+        if (type.equals("int") || type.equals("integer") || type.equals("long")
+                || type.equals("boolean") || type.equals("date")) {
             dbType = "integer";
         } else if (type.equals("float") || type.equals("double") || type.equals("real")) {
             dbType = "real";

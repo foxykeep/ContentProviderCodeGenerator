@@ -24,15 +24,23 @@ public class DatabaseGenerator {
     private static final String BULK_STRING_VALUE = "            String value;\n";
     private static final String PRIMARY_KEY_FORMAT = " + \", PRIMARY KEY (\" + %1$s + \")\"";
 
-    private static final String URI_TYPE_FORMAT = "        %1$s%2$s(%3$s.TABLE_NAME%4$s, %3$s.TABLE_NAME, %3$s.%5$s)%6$s\n";
+    private static final String URI_TYPE_FORMAT =
+            "        %1$s%2$s(%3$s.TABLE_NAME%4$s, %3$s.TABLE_NAME, %3$s.%5$s)%6$s\n";
 
-    private static final String UPGRADE_VERSION_COMMENT_NOTHING = "        // Version %1$d : No changes\n";
-    private static final String UPGRADE_VERSION_COMMENT_NOTHING_MULTI = "        // Version %1$d - %2$d : No changes\n";
-    private static final String UPGRADE_VERSION_COMMENT_FIELD = "        // Version %1$d : Add field%3$s %2$s\n";
-    private static final String UPGRADE_VERSION_JUMP_TO_LATEST = "\n            if (oldVersion < newVersion) {\n                // No more changes since version %1$d so jump to newVersion\n                oldVersion = newVersion;\n            }";
+    private static final String UPGRADE_VERSION_COMMENT_NOTHING =
+            "        // Version %1$d : No changes\n";
+    private static final String UPGRADE_VERSION_COMMENT_NOTHING_MULTI =
+            "        // Version %1$d - %2$d : No changes\n";
+    private static final String UPGRADE_VERSION_COMMENT_FIELD =
+            "        // Version %1$d : Add field%3$s %2$s\n";
+    private static final String UPGRADE_VERSION_JUMP_TO_LATEST = "\n            if (oldVersion " +
+            "< newVersion) {\n                // No more changes since version %1$d so jump to " +
+            "newVersion\n                oldVersion = newVersion;\n            }";
 
-    private static final String PROVIDER_UPGRADE_VERSION_VERSION = "    // Version %1$d : %2$s\n";
-    private static final String PROVIDER_UPGRADE_VERSION_MULTI = "    // Version %1$d - %2$d : %3$s\n";
+    private static final String PROVIDER_UPGRADE_VERSION_VERSION =
+            "    // Version %1$d : %2$s\n";
+    private static final String PROVIDER_UPGRADE_VERSION_MULTI =
+            "    // Version %1$d - %2$d : %3$s\n";
     private static final String PROVIDER_UPGRADE_VERSION_OTHER = "    //             %1$s\n";
     private static final String PROVIDER_UPGRADE_ADD_TABLE = "Add table %1$s";
     private static final String PROVIDER_UPGRADE_ADD_FIELD = "Add field%3$s %1$s in table %2$s";
@@ -47,8 +55,8 @@ public class DatabaseGenerator {
             final ArrayList<TableData> tableDataList, final String providerFolder) {
         if (classPackage == null || classPackage.length() == 0 || classesPrefix == null
                 || classesPrefix.length() == 0 || tableDataList == null || tableDataList.isEmpty()) {
-            System.out
-                    .println("Error : You must provide a class package, a class prefix and a database structure");
+            System.out.println("Error : You must provide a class package, a class prefix and a " +
+                    "database structure");
             return;
         }
         generateContentClass(fileName, classPackage, classesPrefix, tableDataList, dbVersion,
@@ -103,9 +111,9 @@ public class DatabaseGenerator {
             final StringBuilder sbBulkParams = new StringBuilder();
             final StringBuilder sbBulkValues = new StringBuilder();
 
-            boolean hasPreviousPrimaryKey = false, hasPreviousInsertFields = false,
-                    hasPreviousInsertDefaultValues = false, hasTextField = false,
-                    hasPreviousUpgradeElements = true;
+            boolean hasPreviousPrimaryKey = false, hasPreviousInsertFields = false;
+            boolean hasPreviousInsertDefaultValues = false, hasTextField = false;
+            boolean hasPreviousUpgradeElements = true;
             int maxUpgradeVersion = 1, minUpgradeWithoutChanges = 1;
 
             for (TableData tableData : tableDataList) {
@@ -166,36 +174,41 @@ public class DatabaseGenerator {
                                 .append(fieldData.dbConstantName).append(".getName() + \");\");\n");
                     }
 
-                    sbBulkFields.append(".append(")
-                            .append("Columns.")
-                            .append(fieldData.dbConstantName).append(".getName())");
-                    sbBulkParams.append("?");
-                    if (fieldData.dbType.equals("text")) {
-                        hasTextField = true;
-                        sbBulkValues.append(TAB3)
-                                .append("value = values.getAsString(")
+                    if (!fieldData.dbSkipBulkInsert) {
+                        sbBulkFields.append(".append(")
                                 .append("Columns.")
-                                .append(fieldData.dbConstantName).append(".getName());\n");
-                        sbBulkValues.append(TAB3)
-                                .append("stmt.bindString(i++, value != null ? value : \"\");\n");
-                    } else if (fieldData.dbType.equals("integer")) {
-                        sbBulkValues.append(TAB3)
-                                .append("stmt.bindLong(i++, values.getAsLong(")
-                                .append("Columns.")
-                                .append(fieldData.dbConstantName).append(".getName()));\n");
-                    } else if (fieldData.dbType.equals("real")) {
-                        sbBulkValues.append(TAB3)
-                                .append("stmt.bindDouble(i++, values.getAsDouble(")
-                                .append("Columns.")
-                                .append(fieldData.dbConstantName).append(".getName()));\n");
+                                .append(fieldData.dbConstantName).append(".getName())");
+                        sbBulkParams.append("?");
+                        if (fieldData.dbType.equals("text")) {
+                            hasTextField = true;
+                            sbBulkValues.append(TAB3)
+                                    .append("value = values.getAsString(")
+                                    .append("Columns.")
+                                    .append(fieldData.dbConstantName).append(".getName());\n");
+                            sbBulkValues
+                                    .append(TAB3)
+                                    .append("stmt.bindString(i++, value != null ? value : \"\");\n");
+                        } else if (fieldData.dbType.equals("integer")) {
+                            sbBulkValues.append(TAB3)
+                                    .append("stmt.bindLong(i++, values.getAsLong(")
+                                    .append("Columns.")
+                                    .append(fieldData.dbConstantName).append(".getName()));\n");
+                        } else if (fieldData.dbType.equals("real")) {
+                            sbBulkValues.append(TAB3)
+                                    .append("stmt.bindDouble(i++, values.getAsDouble(")
+                                    .append("Columns.")
+                                    .append(fieldData.dbConstantName).append(".getName()));\n");
+                        }
                     }
 
                     if (isNotLast) {
                         sbEnumFields.append(",\n");
                         sbProjection.append(",\n");
                         sbCreateTable.append(" + \", \" + ");
-                        sbBulkFields.append(".append(\", \")");
-                        sbBulkParams.append(", ");
+                        if (!fieldData.dbSkipBulkInsert) {
+                            sbBulkFields.append(".append(\", \")");
+                            sbBulkParams.append(", ");
+                        }
                     }
                 }
 

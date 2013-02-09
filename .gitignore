@@ -1,6 +1,11 @@
 bin
 gen
-.settings
-Thumbs.db
-.DS_Store
 generator/output
+out
+*.iml
+.project
+.classpath
+.idea
+.settings
+.DS_Store
+Thumbs.db

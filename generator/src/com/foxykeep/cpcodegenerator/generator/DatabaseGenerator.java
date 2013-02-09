@@ -111,10 +111,10 @@ public class DatabaseGenerator {
             final StringBuilder sbBulkParams = new StringBuilder();
             final StringBuilder sbBulkValues = new StringBuilder();
 
-            boolean hasPreviousPrimaryKey = false, hasPreviousInsertFields = false;
-            boolean hasPreviousInsertDefaultValues = false, hasTextField = false;
-            boolean hasPreviousUpgradeElements = true;
-            int maxUpgradeVersion = 1, minUpgradeWithoutChanges = 1;
+            boolean hasPreviousPrimaryKey, hasPreviousInsertFields;
+            boolean hasPreviousInsertDefaultValues, hasTextField;
+            boolean hasPreviousUpgradeElements;
+            int maxUpgradeVersion, minUpgradeWithoutChanges;
 
             for (TableData tableData : tableDataList) {
                 sbEnumFields.setLength(0);
@@ -215,7 +215,7 @@ public class DatabaseGenerator {
                 // Upgrade management
                 maxUpgradeVersion = tableData.version;
                 minUpgradeWithoutChanges = -1;
-                for (int curVers = tableData.version + 1, n = dbVersion; curVers <= n; curVers++) {
+                for (int curVers = tableData.version + 1; curVers <= dbVersion; curVers++) {
                     final List<FieldData> upgradeFieldDataList = tableData.upgradeFieldMap
                             .get(curVers);
                     if (upgradeFieldDataList == null) {
@@ -364,10 +364,8 @@ public class DatabaseGenerator {
                                     + PathUtils.UTIL));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            return;
         } catch (IOException e) {
             e.printStackTrace();
-            return;
         }
     }
 
@@ -387,7 +385,7 @@ public class DatabaseGenerator {
 
         int minUpgradeWithoutChanges = 1;
 
-        String bulkText = "";
+        String bulkText;
         final StringBuilder sb = new StringBuilder();
         BufferedReader br;
         try {
@@ -426,24 +424,28 @@ public class DatabaseGenerator {
                     i != tableDataListSize - 1 ? "," : ";"));
 
             sbCreateTables
-                    .append("            if (ACTIVATE_ALL_LOGS) {\n                Log.d(LOG_TAG, \"")
+                    .append("            if (ACTIVATE_ALL_LOGS) {\n")
+                    .append("                Log.d(LOG_TAG, \"")
                     .append(tableData.dbClassName)
                     .append(" | createTable start\");\n            }\n");
             sbCreateTables.append("            ").append(tableData.dbClassName)
                     .append(".createTable(db);\n");
             sbCreateTables
-                    .append("            if (ACTIVATE_ALL_LOGS) {\n                Log.d(LOG_TAG, \"")
+                    .append("            if (ACTIVATE_ALL_LOGS) {\n")
+                    .append("                Log.d(LOG_TAG, \"")
                     .append(tableData.dbClassName)
                     .append(" | createTable end\");\n            }\n");
 
             sbUpgradeTables
-                    .append("            if (ACTIVATE_ALL_LOGS) {\n                Log.d(LOG_TAG, \"")
+                    .append("            if (ACTIVATE_ALL_LOGS) {\n")
+                    .append("                Log.d(LOG_TAG, \"")
                     .append(tableData.dbClassName)
                     .append(" | upgradeTable start\");\n            }\n");
             sbUpgradeTables.append("            ").append(tableData.dbClassName)
                     .append(".upgradeTable(db, oldVersion, newVersion);\n");
             sbUpgradeTables
-                    .append("            if (ACTIVATE_ALL_LOGS) {\n                Log.d(LOG_TAG, \"")
+                    .append("            if (ACTIVATE_ALL_LOGS) {\n")
+                    .append("                Log.d(LOG_TAG, \"")
                     .append(tableData.dbClassName)
                     .append(" | upgradeTable end\");\n            }\n");
 

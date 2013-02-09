@@ -1,15 +1,15 @@
 package com.foxykeep.cpcodegenerator.model;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.foxykeep.cpcodegenerator.util.NameUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.foxykeep.cpcodegenerator.util.NameUtils;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class TableData {
 
@@ -23,15 +23,16 @@ public class TableData {
 
     public Map<Integer, List<FieldData>> upgradeFieldMap = new HashMap<Integer, List<FieldData>>();
 
-    public TableData(final JSONObject json, final String contentClassesPrefix, final int dbVersion) throws JSONException {
+    public TableData(final JSONObject json, final String contentClassesPrefix, final int dbVersion)
+            throws JSONException {
         dbClassName = contentClassesPrefix + json.getString("table_name");
         dbTableName = NameUtils.createLowerCamelCaseName(dbClassName);
         dbConstantName = NameUtils.createConstantName(dbTableName);
 
         version = json.optInt("version", 1);
         if (version > dbVersion) {
-            throw new IllegalArgumentException("The table " + dbClassName + " has a version (" + version + ") higher than the database version ("
-                    + dbVersion + ")");
+            throw new IllegalArgumentException("The table " + dbClassName + " has a version ("
+                    + version + ") higher than the database version (" + dbVersion + ")");
         }
 
         final JSONArray jsonFieldArray = json.getJSONArray("fields");
@@ -41,8 +42,9 @@ public class TableData {
 
         for (FieldData fieldData : fieldList) {
             if (fieldData.version > dbVersion) {
-                throw new IllegalArgumentException("The field " + fieldData.name + " has a version (" + fieldData.version
-                        + ") higher than the database version (" + dbVersion + ")");
+                throw new IllegalArgumentException("The field " + fieldData.name
+                        + " has a version (" + fieldData.version + ") higher than the database " +
+                        "version (" + dbVersion + ")");
             }
             List<FieldData> upgradeList = upgradeFieldMap.get(fieldData.version);
             if (upgradeList == null) {
@@ -54,13 +56,14 @@ public class TableData {
         }
     }
 
-    public static ArrayList<TableData> getClassesData(final JSONArray jsonClassArray, final String contentClassesPrefix, final int dbVersion)
-            throws JSONException {
+    public static ArrayList<TableData> getClassesData(final JSONArray jsonClassArray,
+            final String contentClassesPrefix, final int dbVersion) throws JSONException {
         final ArrayList<TableData> classDataList = new ArrayList<TableData>();
 
         final int jsonClassArrayLength = jsonClassArray.length();
         for (int i = 0; i < jsonClassArrayLength; i++) {
-            classDataList.add(new TableData(jsonClassArray.getJSONObject(i), contentClassesPrefix, dbVersion));
+            classDataList.add(new TableData(jsonClassArray.getJSONObject(i), contentClassesPrefix,
+                    dbVersion));
         }
 
         return classDataList;

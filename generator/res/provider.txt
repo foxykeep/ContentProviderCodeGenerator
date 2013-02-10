@@ -34,8 +34,9 @@ public final class %3$sProvider extends ContentProvider {
 
     public static final String AUTHORITY = "%4$s.provider.%3$sProvider";
 
-    public static final Uri INTEGRITY_CHECK_URI = Uri.parse("content://" + AUTHORITY 
-            + "/integrityCheck");
+    static {
+        Uri.parse("content://" + AUTHORITY + "/integrityCheck");
+    }
 
     // Version 1 : Creation of the database
 %13$s    public static final int DATABASE_VERSION = %12$d;
@@ -123,7 +124,7 @@ public final class %3$sProvider extends ContentProvider {
 
         // Pick the correct database for this operation
         SQLiteDatabase db = getDatabase(context);
-        String id = "0";
+        String id;
 
         if (ACTIVATE_ALL_LOGS) {
             Log.d(LOG_TAG, "delete: uri=" + uri + ", match is " + uriType.name());
@@ -163,7 +164,7 @@ public final class %3$sProvider extends ContentProvider {
             Log.d(LOG_TAG, "insert: uri=" + uri + ", match is " + uriType.name());
         }
 
-        Uri resultUri = null;
+        Uri resultUri;
 
         switch (uriType) {
 %9$s                id = db.insert(uriType.getTableName(), "foo", values);

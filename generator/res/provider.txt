@@ -24,7 +24,7 @@ import java.util.ArrayList;
  * <p>
  * (More information available https://github.com/foxykeep/ContentProviderCodeGenerator)
  */
-public final class %3$sProvider extends ContentProvider {
+public class %3$sProvider extends ContentProvider {
 
     private static final String LOG_TAG = %3$sProvider.class.getSimpleName();
 
@@ -33,9 +33,15 @@ public final class %3$sProvider extends ContentProvider {
     protected static final String DATABASE_NAME = "%3$sProvider.db";
 
     public static final String AUTHORITY = "%4$s.provider.%3$sProvider";
+    
+    protected static boolean NOTIFY_DATASET_CHANGES = false;
 
     static {
         Uri.parse("content://" + AUTHORITY + "/integrityCheck");
+    }
+    
+    protected boolean canNotify() {
+    	return NOTIFY_DATASET_CHANGES;
     }
 
     // Version 1 : Creation of the database
@@ -134,14 +140,15 @@ public final class %3$sProvider extends ContentProvider {
 
         switch (uriType) {
 %8$s                id = uri.getPathSegments().get(1);
-                result = db.delete(uriType.getTableName(), whereWithId(id, selection), 
-                        selectionArgs);
+                result = db.delete(uriType.getTableName(), whereWithId(selection),
+                        addIdToSelectionArgs(id, selectionArgs));
                 break;
 %9$s                result = db.delete(uriType.getTableName(), selection, selectionArgs);
                 break;
         }
 
-        getContext().getContentResolver().notifyChange(uri, null);
+		if (canNotify() == true)
+        	getContext().getContentResolver().notifyChange(uri, null);
         return result;
     }
 
@@ -176,7 +183,8 @@ public final class %3$sProvider extends ContentProvider {
 
         // Notify with the base uri, not the new uri (nobody is watching a new
         // record)
-        getContext().getContentResolver().notifyChange(uri, null);
+        if (canNotify() == true)
+        	getContext().getContentResolver().notifyChange(uri, null);
         return resultUri;
     }
 
@@ -227,7 +235,8 @@ public final class %3$sProvider extends ContentProvider {
 
         // Notify with the base uri, not the new uri (nobody is watching a new
         // record)
-        context.getContentResolver().notifyChange(uri, null);
+        if (canNotify() == true)
+        	context.getContentResolver().notifyChange(uri, null);
         return numberInserted;
     }
 
@@ -249,8 +258,8 @@ public final class %3$sProvider extends ContentProvider {
 
         switch (uriType) {
 %8$s                id = uri.getPathSegments().get(1);
-                c = db.query(uriType.getTableName(), projection, whereWithId(id, selection),
-                        selectionArgs, null, null, sortOrder);
+                c = db.query(uriType.getTableName(), projection, whereWithId(selection),
+                        addIdToSelectionArgs(id, selectionArgs), null, null, sortOrder);
                 break;
 %9$s                c = db.query(uriType.getTableName(), projection, selection, selectionArgs,
                         null, null, sortOrder);
@@ -263,17 +272,32 @@ public final class %3$sProvider extends ContentProvider {
         return c;
     }
 
-    private String whereWithId(String id, String selection) {
+    private String whereWithId(String selection) {
         StringBuilder sb = new StringBuilder(256);
         sb.append(BaseColumns._ID);
-        sb.append(" = ");
-        sb.append(id);
+        sb.append(" = ?");
         if (selection != null) {
             sb.append(" AND (");
             sb.append(selection);
             sb.append(')');
         }
         return sb.toString();
+    }
+    
+    private String[] addIdToSelectionArgs(String id, String[] selectionArgs) {
+    	int length = 0;
+    	if (selectionArgs != null)
+    		length = selectionArgs.length;
+    	String[] newSelectionArgs = new String[length + 1];
+    	// Add the ID
+    	newSelectionArgs[0] = id;
+    	// If there are more elements, add them in the right order
+    	if (length > 0) {
+    		for (int i = 1; i <= 1; i++) {
+    	    	newSelectionArgs[i] = selectionArgs[i-1];
+    		}
+    	}
+    	return newSelectionArgs;
     }
 
     @Override
@@ -293,14 +317,15 @@ public final class %3$sProvider extends ContentProvider {
 
         switch (uriType) {
 %8$s                String id = uri.getPathSegments().get(1);
-                result = db.update(uriType.getTableName(), values, whereWithId(id, selection),
-                        selectionArgs);
+                result = db.update(uriType.getTableName(), values, whereWithId(selection),
+                        addIdToSelectionArgs(id, selectionArgs));
                 break;
 %9$s                result = db.update(uriType.getTableName(), values, selection, selectionArgs);
                 break;
         }
 
-        getContext().getContentResolver().notifyChange(uri, null);
+        if (canNotify() == true)
+        	getContext().getContentResolver().notifyChange(uri, null);
         return result;
     }
 

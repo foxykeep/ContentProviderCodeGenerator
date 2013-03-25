@@ -9,8 +9,8 @@
                     db.setTransactionSuccessful();
                     numberInserted = values.length;
 
-			        if (ACTIVATE_ALL_LOGS) {
-			            Log.d(LOG_TAG, "bulkInsert: uri=" + uri + " | nb inserts : " + numberInserted);
-			        }
+                    if (ACTIVATE_ALL_LOGS) {
+                        Log.d(LOG_TAG, "bulkInsert: uri=" + uri + " | nb inserts : " + numberInserted);
+                    }
                     break;
 

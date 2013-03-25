@@ -43,7 +43,7 @@ public final class %3$sProvider extends ContentProvider {
 
     private static final UriMatcher sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 
-	private enum UriType {
+    private enum UriType {
 %5$s
         private String mTableName;
         private String mType;
@@ -87,7 +87,7 @@ public final class %3$sProvider extends ContentProvider {
             if (mDatabase != null) {
                 mDatabase.setLockingEnabled(true);
             }
-		}
+        }
 
         return mDatabase;
     }

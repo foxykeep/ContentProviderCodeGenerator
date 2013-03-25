@@ -1,10 +1,10 @@
 
-	/**
-	 * Created in version %15$d
-	 */
+    /**
+     * Created in version %15$d
+     */
     public static final class %1$s extends %2$sContent {
 
-    	private static final String LOG_TAG = %1$s.class.getSimpleName();
+        private static final String LOG_TAG = %1$s.class.getSimpleName();
 
         public static final String TABLE_NAME = "%3$s";
         public static final String TYPE_ELEM_TYPE = "vnd.android.cursor.item/%4$s-%5$s";
@@ -52,7 +52,7 @@
 
 %10$s        }
 
-		// Version %15$d : Creation of the table
+        // Version %15$d : Creation of the table
 %16$s        public static void upgradeTable(SQLiteDatabase db, int oldVersion, int newVersion) {
 
             if (oldVersion < 1) {

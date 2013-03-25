@@ -283,9 +283,9 @@ public class %3$sProvider extends ContentProvider {
         }
         return sb.toString();
     }
-    
+
     private String[] addIdToSelectionArgs(String id, String[] selectionArgs) {
-        
+
         if (selectionArgs == null) {
             return new String[] { id };
         }

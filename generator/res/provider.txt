@@ -49,7 +49,7 @@ public class %3$sProvider extends ContentProvider {
 
     private static final UriMatcher sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 
-	private enum UriType {
+    private enum UriType {
 %5$s
         private String mTableName;
         private String mType;
@@ -93,7 +93,7 @@ public class %3$sProvider extends ContentProvider {
             if (mDatabase != null) {
                 mDatabase.setLockingEnabled(true);
             }
-		}
+        }
 
         return mDatabase;
     }
@@ -147,8 +147,8 @@ public class %3$sProvider extends ContentProvider {
                 break;
         }
 
-		if (canNotify() == true)
-        	getContext().getContentResolver().notifyChange(uri, null);
+        if (canNotify() == true)
+            getContext().getContentResolver().notifyChange(uri, null);
         return result;
     }
 
@@ -184,7 +184,7 @@ public class %3$sProvider extends ContentProvider {
         // Notify with the base uri, not the new uri (nobody is watching a new
         // record)
         if (canNotify() == true)
-        	getContext().getContentResolver().notifyChange(uri, null);
+            getContext().getContentResolver().notifyChange(uri, null);
         return resultUri;
     }
 
@@ -236,7 +236,7 @@ public class %3$sProvider extends ContentProvider {
         // Notify with the base uri, not the new uri (nobody is watching a new
         // record)
         if (canNotify() == true)
-        	context.getContentResolver().notifyChange(uri, null);
+            context.getContentResolver().notifyChange(uri, null);
         return numberInserted;
     }
 
@@ -285,19 +285,16 @@ public class %3$sProvider extends ContentProvider {
     }
     
     private String[] addIdToSelectionArgs(String id, String[] selectionArgs) {
-    	int length = 0;
-    	if (selectionArgs != null)
-    		length = selectionArgs.length;
-    	String[] newSelectionArgs = new String[length + 1];
-    	// Add the ID
-    	newSelectionArgs[0] = id;
-    	// If there are more elements, add them in the right order
-    	if (length > 0) {
-    		for (int i = 1; i <= 1; i++) {
-    	    	newSelectionArgs[i] = selectionArgs[i-1];
-    		}
-    	}
-    	return newSelectionArgs;
+        
+        if (selectionArgs == null) {
+            return new String[] { id };
+        }
+
+        int length = selectionArgs.length;
+        String[] newSelectionArgs = new String[length + 1];
+        newSelectionArgs[0] = id;
+        System.arraycopy(selectionArgs, 0, newSelectionArgs, 1, length);
+        return newSelectionArgs;
     }
 
     @Override
@@ -318,14 +315,14 @@ public class %3$sProvider extends ContentProvider {
         switch (uriType) {
 %8$s                String id = uri.getPathSegments().get(1);
                 result = db.update(uriType.getTableName(), values, whereWithId(selection),
-                        addIdToSelectionArgs(id, selectionArgs));
+                    addIdToSelectionArgs(id, selectionArgs));
                 break;
 %9$s                result = db.update(uriType.getTableName(), values, selection, selectionArgs);
                 break;
         }
 
         if (canNotify() == true)
-        	getContext().getContentResolver().notifyChange(uri, null);
+            getContext().getContentResolver().notifyChange(uri, null);
         return result;
     }
 

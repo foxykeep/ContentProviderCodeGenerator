@@ -1,5 +1,6 @@
 package %1$s.%11$s;
 
+%2$s
 import android.content.ContentProvider;
 import android.content.ContentProviderOperation;
 import android.content.ContentProviderResult;
@@ -16,7 +17,6 @@ import android.net.Uri;
 import android.provider.BaseColumns;
 import android.util.Log;
 
-%2$s
 import java.util.ArrayList;
 
 /**

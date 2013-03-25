@@ -48,10 +48,6 @@ public class Main {
         // For each file in the input folder
         for (File file : fileInputDir.listFiles()) {
             final String fileName = file.getName();
-            if (fileName.equals("example")) {
-                // Bypass the example folder
-                continue;
-            }
             System.out.println("Generating code for " + fileName);
 
             final char[] buffer = new char[2048];

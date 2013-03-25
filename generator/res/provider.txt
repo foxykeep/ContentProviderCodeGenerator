@@ -1,6 +1,5 @@
 package %1$s.%11$s;
 
-%2$s
 import android.content.ContentProvider;
 import android.content.ContentProviderOperation;
 import android.content.ContentProviderResult;
@@ -17,6 +16,7 @@ import android.net.Uri;
 import android.provider.BaseColumns;
 import android.util.Log;
 
+%2$s
 import java.util.ArrayList;
 
 /**
@@ -24,7 +24,7 @@ import java.util.ArrayList;
  * <p>
  * (More information available https://github.com/foxykeep/ContentProviderCodeGenerator)
  */
-public final class %3$sProvider extends ContentProvider {
+public class %3$sProvider extends ContentProvider {
 
     private static final String LOG_TAG = %3$sProvider.class.getSimpleName();
 
@@ -33,9 +33,15 @@ public final class %3$sProvider extends ContentProvider {
     protected static final String DATABASE_NAME = "%3$sProvider.db";
 
     public static final String AUTHORITY = "%4$s.provider.%3$sProvider";
+    
+    protected static boolean NOTIFY_DATASET_CHANGES = false;
 
     static {
         Uri.parse("content://" + AUTHORITY + "/integrityCheck");
+    }
+    
+    protected boolean canNotify() {
+    	return NOTIFY_DATASET_CHANGES;
     }
 
     // Version 1 : Creation of the database
@@ -43,7 +49,7 @@ public final class %3$sProvider extends ContentProvider {
 
     private static final UriMatcher sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 
-    private enum UriType {
+	private enum UriType {
 %5$s
         private String mTableName;
         private String mType;
@@ -87,7 +93,7 @@ public final class %3$sProvider extends ContentProvider {
             if (mDatabase != null) {
                 mDatabase.setLockingEnabled(true);
             }
-        }
+		}
 
         return mDatabase;
     }
@@ -141,7 +147,8 @@ public final class %3$sProvider extends ContentProvider {
                 break;
         }
 
-        getContext().getContentResolver().notifyChange(uri, null);
+		if (canNotify() == true)
+        	getContext().getContentResolver().notifyChange(uri, null);
         return result;
     }
 
@@ -176,7 +183,8 @@ public final class %3$sProvider extends ContentProvider {
 
         // Notify with the base uri, not the new uri (nobody is watching a new
         // record)
-        getContext().getContentResolver().notifyChange(uri, null);
+        if (canNotify() == true)
+        	getContext().getContentResolver().notifyChange(uri, null);
         return resultUri;
     }
 
@@ -227,7 +235,8 @@ public final class %3$sProvider extends ContentProvider {
 
         // Notify with the base uri, not the new uri (nobody is watching a new
         // record)
-        context.getContentResolver().notifyChange(uri, null);
+        if (canNotify() == true)
+        	context.getContentResolver().notifyChange(uri, null);
         return numberInserted;
     }
 
@@ -274,18 +283,21 @@ public final class %3$sProvider extends ContentProvider {
         }
         return sb.toString();
     }
-
+    
     private String[] addIdToSelectionArgs(String id, String[] selectionArgs) {
-
-        if (selectionArgs == null) {
-            return new String[] { id };
-        }
-
-        int length = selectionArgs.length;
-        String[] newSelectionArgs = new String[length + 1];
-        newSelectionArgs[0] = id;
-        System.arraycopy(selectionArgs, 0, newSelectionArgs, 1, length);
-        return newSelectionArgs;
+    	int length = 0;
+    	if (selectionArgs != null)
+    		length = selectionArgs.length;
+    	String[] newSelectionArgs = new String[length + 1];
+    	// Add the ID
+    	newSelectionArgs[0] = id;
+    	// If there are more elements, add them in the right order
+    	if (length > 0) {
+    		for (int i = 1; i <= 1; i++) {
+    	    	newSelectionArgs[i] = selectionArgs[i-1];
+    		}
+    	}
+    	return newSelectionArgs;
     }
 
     @Override
@@ -306,13 +318,14 @@ public final class %3$sProvider extends ContentProvider {
         switch (uriType) {
 %8$s                String id = uri.getPathSegments().get(1);
                 result = db.update(uriType.getTableName(), values, whereWithId(selection),
-                    addIdToSelectionArgs(id, selectionArgs));
+                        addIdToSelectionArgs(id, selectionArgs));
                 break;
 %9$s                result = db.update(uriType.getTableName(), values, selection, selectionArgs);
                 break;
         }
 
-        getContext().getContentResolver().notifyChange(uri, null);
+        if (canNotify() == true)
+        	getContext().getContentResolver().notifyChange(uri, null);
         return result;
     }
 

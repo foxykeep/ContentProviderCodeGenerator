@@ -1,31 +1,51 @@
 // Don't use this file if you want to try the generator. Use sample.json or sample_with_version.json
 {
-	"database":
-	{
-		"package":"com.example.mypackage", // Required. Application package.
-		"authority_package":"com.example.mypackage", // Optional. AUTHORITY package for the database. If not present, package will be used.
-		"classes_prefix":"MyApplication", // Required. Classes prefix used to name the ContentProvider
-        "provider_folder":"data.provider" // Optional. End of the package where is stored the ContentProvider. Default is "data.provider".
-        "content_classes_prefix":"Db", // Optional. Prefix which will be added to the table classes in the Content class. Useful if you also have a model class with the same name as your table (They will be named DbMyClass and MyClass instead of both MyClass). Default is "". 
-		"version":1 // Required. Version of the database.
-	},
-	"tables":[ // your tables
-		{
-	        "table_name":"MyTable", // Required. Name of your table
-            "version":1, // Optional. Version of the database where this table is added to the database. Default is 1.
-			"fields":[ // fields of the table
-				{
-		            "name":"id", // Required. Name of the field
-					"type":"integer", // Required. Type of the field. can be "int", "integer", "long", "boolean", "date", "float", "double", "real", "string", "String", "text"
-					"is_primary_key":true, // Optional. Whether the field is part of the primary key. Multiple fields can have this value set to true (for example if you have a complex primary key). Default is false.
-					"is_id":true, // Optional. Whether the field is the identifier field of the class. The column named will be changed to BaseColumns._ID in the database. Only one field should have this value set to true by table. Default is false.
-					"is_index":true, // Optional. Whether the field needs to have an index added to it in the database. Should be set to true for text field which will have a where clause used on them. Default is false.
-                    "version":1, // Optional. Version of the database where this field is added to the table. Default is the table creation version.
-                    "skip_bulk_insert":false // Optional. Whether to skip this field in the bulk insert methods. Default is false.
-				},
+    "database":
+    {
+        "package":"com.example.mypackage", // Required. Application package.
+        "authority_package":"com.example.mypackage", // Optional. AUTHORITY package for the
+                database. If not present, package will be used.
+        "classes_prefix":"MyApplication", // Required. Classes prefix used to name the
+                ContentProvider
+        "provider_folder":"data.provider" // Optional. End of the package where is stored the
+                ContentProvider. Default is "data.provider".
+        "content_classes_prefix":"Db", // Optional. Prefix which will be added to the table classes
+                in the Content class. Useful if you also have a model class with the same name as
+                your table (They will be named DbMyClass and MyClass instead of both MyClass).
+                Default is "".
+        "version":1 // Required. Version of the database.
+    },
+    "tables":[ // your tables
+        {
+            "table_name":"MyTable", // Required. Name of your table
+            "version":1, // Optional. Version of the database where this table is added to the
+                    database. Default is 1.
+            "fields":[ // fields of the table
+                {
+                    "name":"id", // Required. Name of the field
+                    "type":"integer", // Required. Type of the field. can be "int", "integer",
+                            "long", "boolean", "date", "float", "double", "real", "string",
+                            "String", "text"
+                    "is_primary_key":true, // Optional. Whether the field is part of the primary
+                            key. Multiple fields can have this value set to true (for example if
+                            you have a complex primary key). Default is false.
+                    "is_id":true, // Optional. Whether the field is the identifier field of the
+                            class. The column named will be changed to BaseColumns._ID in the
+                            database. Only one field should have this value set to true by table.
+                            Default is false.
+                    "is_autoincrement":false // Optional. Can only be set on the field flagged with
+                            "is_id". Whether or not the field should be autoincremented.
+                    "is_index":true, // Optional. Whether the field needs to have an index added to
+                            it in the database. Should be set to true for text field which will
+                            have a where clause used on them. Default is false.
+                    "version":1, // Optional. Version of the database where this field is added to
+                            the table. Default is the table creation version.
+                    "skip_bulk_insert":false // Optional. Whether to skip this field in the bulk
+                            insert methods. Default is false.
+                },
                 {...}
-			]
-		},
+            ]
+        },
         {...}
-	]
+    ]
 }

@@ -157,6 +157,9 @@ public class DatabaseGenerator {
                             .append(fieldData.dbConstantName).append(".getName() + \" \" + ")
                             .append("Columns.")
                             .append(fieldData.dbConstantName).append(".getType()");
+                    if (fieldData.dbIsAutoincrement) {
+                        sbCreateTable.append("+ \" AUTOINCREMENT\"");
+                    }
                     if (fieldData.dbIsPrimaryKey) {
                         if (hasPreviousPrimaryKey) {
                             sbCreateTablePrimaryKey.append(" + \", \" + ");
@@ -174,7 +177,7 @@ public class DatabaseGenerator {
                                 .append(fieldData.dbConstantName).append(".getName() + \");\");\n");
                     }
 
-                    if (!fieldData.dbSkipBulkInsert) {
+                    if (!fieldData.dbSkipBulkInsert && !fieldData.dbIsAutoincrement) {
                         sbBulkFields.append(".append(")
                                 .append("Columns.")
                                 .append(fieldData.dbConstantName).append(".getName())");

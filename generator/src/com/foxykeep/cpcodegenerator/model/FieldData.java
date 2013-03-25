@@ -17,6 +17,7 @@ public class FieldData {
     public String dbType = null;
     public boolean dbIsPrimaryKey;
     public boolean dbIsId;
+    public boolean dbIsAutoincrement = false;
     public boolean dbHasIndex;
     public boolean dbSkipBulkInsert;
 
@@ -31,6 +32,11 @@ public class FieldData {
         dbIsId = json.optBoolean("is_id", false);
         if (dbIsId) {
             dbName = "_id";
+            dbIsAutoincrement = json.optBoolean("is_autoincrement", false);
+            if (dbIsAutoincrement && !type.equals("integer")) {
+                throw new IllegalArgumentException("is_autoincrement can only be used on an " +
+                        "integer type field");
+            }
         } else {
             dbName = name;
         }

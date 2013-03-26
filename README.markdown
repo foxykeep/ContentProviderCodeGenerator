@@ -33,6 +33,7 @@ Building/Running from the CLI
     cd generator/bin
     ln -s ../res .
     javac $(find ../src -name *.java) -d .
+    mkdir input
     cp ../input/example/sample.json ./input
     java com/foxykeep/cpcodegenerator/Main
 ```

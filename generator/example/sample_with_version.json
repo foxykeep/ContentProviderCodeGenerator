@@ -5,7 +5,7 @@
 {
 	"database":
 	{
-		"package":"com.foxykeep.wishlist",
+		"package":"com.foxykeep.cpcodegenerator.sample.version",
 		"classes_prefix":"WishList",
 		"version":5
 	},

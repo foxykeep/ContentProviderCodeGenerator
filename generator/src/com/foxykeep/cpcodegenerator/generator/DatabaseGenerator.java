@@ -52,7 +52,8 @@ public class DatabaseGenerator {
 
     public static void generate(final String fileName, final String classPackage,
             final int dbVersion, final String dbAuthorityPackage, final String classesPrefix,
-            final ArrayList<TableData> tableDataList, final String providerFolder) {
+            final ArrayList<TableData> tableDataList, final String providerFolder,
+            boolean hasProviderSubclasses) {
         if (classPackage == null || classPackage.length() == 0 || classesPrefix == null
                 || classesPrefix.length() == 0 || tableDataList == null || tableDataList.isEmpty()) {
             System.out.println("Error : You must provide a class package, a class prefix and a " +
@@ -62,7 +63,7 @@ public class DatabaseGenerator {
         generateContentClass(fileName, classPackage, classesPrefix, tableDataList, dbVersion,
                 providerFolder);
         generateProviderClass(fileName, classPackage, dbVersion, dbAuthorityPackage, classesPrefix,
-                tableDataList, providerFolder);
+                tableDataList, providerFolder, hasProviderSubclasses);
     }
 
     private static void generateContentClass(final String fileName, final String classPackage,
@@ -374,7 +375,8 @@ public class DatabaseGenerator {
 
     private static void generateProviderClass(final String fileName, final String classPackage,
             final int dbVersion, final String dbAuthorityPackage, final String classesPrefix,
-            final ArrayList<TableData> tableDataList, final String providerFolder) {
+            final ArrayList<TableData> tableDataList, final String providerFolder,
+            boolean hasProviderSubclasses) {
 
         final StringBuilder sbImports = new StringBuilder();
         final StringBuilder sbUriTypes = new StringBuilder();
@@ -386,7 +388,7 @@ public class DatabaseGenerator {
         final StringBuilder sbUpgradeDatabaseComment = new StringBuilder();
         final StringBuilder sbUpgradeDatabaseCommentFields = new StringBuilder();
 
-        int minUpgradeWithoutChanges = 1;
+        int minUpgradeWithoutChanges;
 
         String bulkText;
         final StringBuilder sb = new StringBuilder();
@@ -521,7 +523,7 @@ public class DatabaseGenerator {
                 sbImports.toString(), classesPrefix, dbAuthorityPackage, sbUriTypes.toString(),
                 sbCreateTables.toString(), sbUpgradeTables.toString(), sbCaseWithId.toString(),
                 sbCaseWithoutId.toString(), sbBulk.toString(), providerFolder, dbVersion,
-                sbUpgradeDatabaseComment.toString()));
+                sbUpgradeDatabaseComment.toString(), hasProviderSubclasses ? "" : "final "));
 
     }
 

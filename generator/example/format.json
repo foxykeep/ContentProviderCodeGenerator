@@ -13,6 +13,8 @@
                 in the Content class. Useful if you also have a model class with the same name as
                 your table (They will be named DbMyClass and MyClass instead of both MyClass).
                 Default is "".
+        "has_subclasses":false, // Optional. Whether the generated provider has subclasses. This
+                will remove the final keyword and change some fields to protected
         "version":1 // Required. Version of the database.
     },
     "tables":[ // your tables

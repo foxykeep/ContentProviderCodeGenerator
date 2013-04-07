@@ -236,7 +236,6 @@ public %14$sclass %3$sProvider extends ContentProvider {
             String sortOrder) {
 
         Cursor c = null;
-        Uri notificationUri = %3$sContent.CONTENT_URI;
         UriType uriType = matchUri(uri);
         Context context = getContext();
         // Pick the correct database for this operation
@@ -258,7 +257,7 @@ public %14$sclass %3$sProvider extends ContentProvider {
         }
 
         if ((c != null) && !isTemporary()) {
-            c.setNotificationUri(getContext().getContentResolver(), notificationUri);
+            c.setNotificationUri(getContext().getContentResolver(), uri);
         }
         return c;
     }

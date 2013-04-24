@@ -30,14 +30,22 @@ public class FieldData {
         dbConstantName = NameUtils.createConstantName(name);
         dbIsPrimaryKey = json.optBoolean("is_primary_key", false);
         dbIsId = json.optBoolean("is_id", false);
+        dbIsAutoincrement = json.optBoolean("is_autoincrement", false);
         if (dbIsId) {
+            if (!dbIsPrimaryKey) {
+                throw new IllegalArgumentException("Field \"" + name + "\" | is_id can only be "
+                        + "used on a field flagged with is_primary_key");
+            }
             dbName = "_id";
-            dbIsAutoincrement = json.optBoolean("is_autoincrement", false);
             if (dbIsAutoincrement && !type.equals("integer")) {
-                throw new IllegalArgumentException("is_autoincrement can only be used on an " +
-                        "integer type field");
+                throw new IllegalArgumentException("Field \"" + name + "\" | is_autoincrement can "
+                        + "only be used on an integer type field");
             }
         } else {
+            if (dbIsAutoincrement) {
+                throw new IllegalArgumentException("Field \"" + name + "\" | id_autoincrement can "
+                        + "only be used on a field flagged with is_id");
+            }
             dbName = name;
         }
         dbHasIndex = !dbIsPrimaryKey && json.optBoolean("is_index", false);

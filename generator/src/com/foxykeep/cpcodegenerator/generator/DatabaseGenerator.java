@@ -112,7 +112,7 @@ public class DatabaseGenerator {
             final StringBuilder sbBulkParams = new StringBuilder();
             final StringBuilder sbBulkValues = new StringBuilder();
 
-            boolean hasPreviousPrimaryKey, hasPreviousInsertFields;
+            boolean hasPreviousPrimaryKey, hasAutoIncrementPrimaryKey, hasPreviousInsertFields;
             boolean hasPreviousInsertDefaultValues, hasTextField;
             boolean hasPreviousUpgradeElements;
             int maxUpgradeVersion, minUpgradeWithoutChanges;
@@ -129,6 +129,7 @@ public class DatabaseGenerator {
                 sbBulkParams.setLength(0);
                 sbBulkValues.setLength(0);
                 hasPreviousPrimaryKey = false;
+                hasAutoIncrementPrimaryKey = false;
                 hasTextField = false;
 
                 for (int i = 0, n = tableData.fieldList.size(); i < n; i++) {
@@ -158,16 +159,28 @@ public class DatabaseGenerator {
                             .append(fieldData.dbConstantName).append(".getName() + \" \" + ")
                             .append("Columns.")
                             .append(fieldData.dbConstantName).append(".getType()");
-                    if (fieldData.dbIsAutoincrement) {
-                        sbCreateTable.append("+ \" AUTOINCREMENT\"");
-                    }
                     if (fieldData.dbIsPrimaryKey) {
-                        if (hasPreviousPrimaryKey) {
-                            sbCreateTablePrimaryKey.append(" + \", \" + ");
+                        if (fieldData.dbIsAutoincrement) {
+                            if (hasPreviousPrimaryKey) {
+                                throw new IllegalArgumentException("Not possible to have multiple" +
+                                        " primary key fields if one of them is an autoincrement " +
+                                        "field");
+                            } else {
+                                hasAutoIncrementPrimaryKey = true;
+                                sbCreateTable.append("+ \" PRIMARY KEY AUTOINCREMENT\"");
+                            }
+                        } else if (hasAutoIncrementPrimaryKey) {
+                            throw new IllegalArgumentException("Not possible to have multiple" +
+                                    " primary key fields if one of them is an autoincrement " +
+                                    "field");
+                        } else {
+                            if (hasPreviousPrimaryKey) {
+                                sbCreateTablePrimaryKey.append(" + \", \" + ");
+                            }
+                            hasPreviousPrimaryKey = true;
+                            sbCreateTablePrimaryKey.append("Columns.")
+                                    .append(fieldData.dbConstantName).append(".getName()");
                         }
-                        hasPreviousPrimaryKey = true;
-                        sbCreateTablePrimaryKey.append("Columns.")
-                                .append(fieldData.dbConstantName).append(".getName()");
                     }
 
                     if (fieldData.dbHasIndex) {

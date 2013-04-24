@@ -222,7 +222,7 @@ public class DatabaseGenerator {
                         sbEnumFields.append(",\n");
                         sbProjection.append(",\n");
                         sbCreateTable.append(" + \", \" + ");
-                        if (!fieldData.dbSkipBulkInsert) {
+                        if (!fieldData.dbSkipBulkInsert && !fieldData.dbIsAutoincrement) {
                             sbBulkFields.append(".append(\", \")");
                             sbBulkParams.append(", ");
                         }

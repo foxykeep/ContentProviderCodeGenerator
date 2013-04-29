@@ -95,7 +95,7 @@ public class Main {
                 providerFolder = jsonDatabase.optString("provider_folder",
                         PathUtils.PROVIDER_DEFAULT);
                 dbVersion = jsonDatabase.getInt("version");
-                hasProviderSubclasses = jsonDatabase.optBoolean("hasSubclasses");
+                hasProviderSubclasses = jsonDatabase.optBoolean("has_subclasses");
 
                 ArrayList<TableData> classDataList = TableData.getClassesData(root.getJSONArray(
                         "tables"), contentClassesPrefix, dbVersion);

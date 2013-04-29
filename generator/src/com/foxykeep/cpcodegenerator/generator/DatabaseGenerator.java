@@ -441,31 +441,11 @@ public class DatabaseGenerator {
                     tableData.dbClassName, " + \"/#\"", "TYPE_DIR_TYPE",
                     i != tableDataListSize - 1 ? "," : ";"));
 
-            sbCreateTables
-                    .append("            if (ACTIVATE_ALL_LOGS) {\n")
-                    .append("                Log.d(LOG_TAG, \"")
-                    .append(tableData.dbClassName)
-                    .append(" | createTable start\");\n            }\n");
             sbCreateTables.append("            ").append(tableData.dbClassName)
                     .append(".createTable(db);\n");
-            sbCreateTables
-                    .append("            if (ACTIVATE_ALL_LOGS) {\n")
-                    .append("                Log.d(LOG_TAG, \"")
-                    .append(tableData.dbClassName)
-                    .append(" | createTable end\");\n            }\n");
 
-            sbUpgradeTables
-                    .append("            if (ACTIVATE_ALL_LOGS) {\n")
-                    .append("                Log.d(LOG_TAG, \"")
-                    .append(tableData.dbClassName)
-                    .append(" | upgradeTable start\");\n            }\n");
             sbUpgradeTables.append("            ").append(tableData.dbClassName)
                     .append(".upgradeTable(db, oldVersion, newVersion);\n");
-            sbUpgradeTables
-                    .append("            if (ACTIVATE_ALL_LOGS) {\n")
-                    .append("                Log.d(LOG_TAG, \"")
-                    .append(tableData.dbClassName)
-                    .append(" | upgradeTable end\");\n            }\n");
 
             sbCaseWithId.append("            case ").append(tableData.dbConstantName)
                     .append("_ID:\n");

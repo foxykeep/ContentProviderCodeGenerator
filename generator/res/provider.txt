@@ -28,7 +28,7 @@ public %14$sclass %3$sProvider extends ContentProvider {
 
     private static final String LOG_TAG = %3$sProvider.class.getSimpleName();
 
-    private static final boolean ACTIVATE_ALL_LOGS = false;
+    /* package */ static final boolean ACTIVATE_ALL_LOGS = false;
 
     protected static final String DATABASE_NAME = "%3$sProvider.db";
 

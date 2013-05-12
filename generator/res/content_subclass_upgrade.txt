@@ -1,8 +1,8 @@
 
             if (oldVersion <= %1$d) {
-                db.execSQL("CREATE TABLE " + TABLE_NAME + "_tmp (" + %2$s%3$s + ");");
+                db.execSQL("CREATE TABLE " + TABLE_NAME + "_tmp (" + %2$s%3$s%4$s + ");");
 
-                db.execSQL("INSERT INTO  " + TABLE_NAME + "_tmp SELECT " + %4$s + ", %5$s FROM " + TABLE_NAME + ";");
+                db.execSQL("INSERT INTO  " + TABLE_NAME + "_tmp SELECT " + %5$s + ", %6$s FROM " + TABLE_NAME + ";");
 
                 db.execSQL("DROP TABLE " + TABLE_NAME + ";");
                 db.execSQL("ALTER TABLE " + TABLE_NAME + "_tmp RENAME TO " + TABLE_NAME + ";");

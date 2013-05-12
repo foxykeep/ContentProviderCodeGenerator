@@ -1,6 +1,6 @@
 
     /**
-     * Created in version %15$d
+     * Created in version %16$d
      */
     public static final class %1$s extends %2$sContent {
 
@@ -51,20 +51,20 @@
             if (%2$sProvider.ACTIVATE_ALL_LOGS) {
                 Log.d(LOG_TAG, "%1$s | createTable start");
             }
-            db.execSQL("CREATE TABLE " + TABLE_NAME + " (" + %8$s%9$s + ");");
+            db.execSQL("CREATE TABLE " + TABLE_NAME + " (" + %8$s%9$s%10$s + ");");
 
-%10$s            if (%2$sProvider.ACTIVATE_ALL_LOGS) {
+%11$s            if (%2$sProvider.ACTIVATE_ALL_LOGS) {
                 Log.d(LOG_TAG, "%1$s | createTable end");
             }
         }
 
-        // Version %15$d : Creation of the table
-%16$s        public static void upgradeTable(SQLiteDatabase db, int oldVersion, int newVersion) {
+        // Version %16$d : Creation of the table
+%17$s        public static void upgradeTable(SQLiteDatabase db, int oldVersion, int newVersion) {
             if (%2$sProvider.ACTIVATE_ALL_LOGS) {
                 Log.d(LOG_TAG, "%1$s | upgradeTable start");
             }
 
-            if (oldVersion < %15$d) {
+            if (oldVersion < %16$d) {
                 Log.i(LOG_TAG, "Upgrading from version " + oldVersion + " to " + newVersion
                         + ", data will be lost!");
 
@@ -72,7 +72,7 @@
                 createTable(db);
                 return;
             }
-%17$s
+%18$s
 
             if (oldVersion != newVersion) {
                 throw new IllegalStateException("Error upgrading the database to version "
@@ -85,10 +85,10 @@
         }
 
         static String getBulkInsertString() {
-            return new StringBuilder("INSERT INTO ").append(TABLE_NAME).append(" ( ")%11$s.append(" ) VALUES (%12$s)").toString();
+            return new StringBuilder("INSERT INTO ").append(TABLE_NAME).append(" ( ")%12$s.append(" ) VALUES (%13$s)").toString();
         }
 
         static void bindValuesInBulkInsert(SQLiteStatement stmt, ContentValues values) {
             int i = 1;
-%13$s%14$s        }
+%14$s%15$s        }
     }

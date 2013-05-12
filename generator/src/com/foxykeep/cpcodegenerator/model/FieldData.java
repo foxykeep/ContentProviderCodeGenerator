@@ -1,5 +1,6 @@
 package com.foxykeep.cpcodegenerator.model;
 
+import com.foxykeep.cpcodegenerator.util.JsonUtils;
 import com.foxykeep.cpcodegenerator.util.NameUtils;
 
 import org.json.JSONException;
@@ -20,6 +21,8 @@ public class FieldData {
     public boolean dbIsAutoincrement = false;
     public boolean dbHasIndex;
     public boolean dbSkipBulkInsert;
+    public String dbDefaultValue;
+    public boolean dbIsUnique;
 
     public FieldData(final JSONObject json) throws JSONException {
         name = json.getString("name");
@@ -51,6 +54,9 @@ public class FieldData {
         dbHasIndex = !dbIsPrimaryKey && json.optBoolean("is_index", false);
 
         dbSkipBulkInsert = json.optBoolean("skip_bulk_insert", false);
+
+        dbDefaultValue = JsonUtils.getStringFixFalseNull(json, "default");
+        dbIsUnique = json.optBoolean("unique", false);
     }
 
     private void setType(final String type) {
@@ -67,7 +73,6 @@ public class FieldData {
     }
 
     public static String getDefaultValue(final String type) {
-
         if (type.equals("string") || type.equals("text") || type.equals("String")) {
             return "''";
         } else {

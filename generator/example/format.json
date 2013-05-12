@@ -43,8 +43,12 @@
                             have a where clause used on them. Default is false.
                     "version":1, // Optional. Version of the database where this field is added to
                             the table. Default is the table creation version.
-                    "skip_bulk_insert":false // Optional. Whether to skip this field in the bulk
+                    "skip_bulk_insert":false, // Optional. Whether to skip this field in the bulk
                             insert methods. Default is false.
+                    "default":"75", // Optional. Default value for the field.
+                    "unique":true // Optional. Flag the column as unique (not possible to have
+                            duplicate data in this column). Multiple columns can be flagged as
+                            unique.
                 },
                 {...}
             ]

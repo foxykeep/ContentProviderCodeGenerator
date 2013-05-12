@@ -23,6 +23,7 @@ public class DatabaseGenerator {
 
     private static final String BULK_STRING_VALUE = "            String value;\n";
     private static final String PRIMARY_KEY_FORMAT = " + \", PRIMARY KEY (\" + %1$s + \")\"";
+    private static final String UNIQUE_FORMAT = " + \", UNIQUE (\" + %1$s + \")\"";
 
     private static final String URI_TYPE_FORMAT =
             "        %1$s%2$s(%3$s.TABLE_NAME%4$s, %3$s.TABLE_NAME, %3$s.%5$s)%6$s\n";
@@ -100,11 +101,13 @@ public class DatabaseGenerator {
             final StringBuilder sbProjection = new StringBuilder();
             final StringBuilder sbCreateTable = new StringBuilder();
             final StringBuilder sbCreateTablePrimaryKey = new StringBuilder();
+            final StringBuilder sbCreateTableUnique = new StringBuilder();
             final StringBuilder sbUpgradeTableComment = new StringBuilder();
             final StringBuilder sbUpgradeTableCommentNewFields = new StringBuilder();
             final StringBuilder sbUpgradeTable = new StringBuilder();
             final StringBuilder sbUpgradeTableCreateTmpTable = new StringBuilder();
             final StringBuilder sbUpgradeTableCreateTmpTablePrimaryKey = new StringBuilder();
+            final StringBuilder sbUpgradeTableCreateTmpTableUnique = new StringBuilder();
             final StringBuilder sbUpgradeTableInsertFields = new StringBuilder();
             final StringBuilder sbUpgradeTableInsertDefaultValues = new StringBuilder();
             final StringBuilder sbIndexes = new StringBuilder();
@@ -113,6 +116,7 @@ public class DatabaseGenerator {
             final StringBuilder sbBulkValues = new StringBuilder();
 
             boolean hasPreviousPrimaryKey, hasAutoIncrementPrimaryKey, hasPreviousInsertFields;
+            boolean hasPreviousUnique;
             boolean hasPreviousInsertDefaultValues, hasTextField;
             boolean hasPreviousUpgradeElements;
             int maxUpgradeVersion, minUpgradeWithoutChanges;
@@ -129,11 +133,12 @@ public class DatabaseGenerator {
                 sbBulkParams.setLength(0);
                 sbBulkValues.setLength(0);
                 hasPreviousPrimaryKey = false;
+                hasPreviousUnique = false;
                 hasAutoIncrementPrimaryKey = false;
                 hasTextField = false;
 
                 for (int i = 0, n = tableData.fieldList.size(); i < n; i++) {
-                    final FieldData fieldData = tableData.fieldList.get(i);
+                    FieldData fieldData = tableData.fieldList.get(i);
 
                     final boolean isNotLast = i != n - 1;
 
@@ -159,6 +164,10 @@ public class DatabaseGenerator {
                             .append(fieldData.dbConstantName).append(".getName() + \" \" + ")
                             .append("Columns.")
                             .append(fieldData.dbConstantName).append(".getType()");
+                    if (fieldData.dbDefaultValue != null) {
+                        sbCreateTable.append(" + \" DEFAULT ").append(fieldData.dbDefaultValue)
+                                .append("\"");
+                    }
                     if (fieldData.dbIsPrimaryKey) {
                         if (fieldData.dbIsAutoincrement) {
                             if (hasPreviousPrimaryKey) {
@@ -181,6 +190,15 @@ public class DatabaseGenerator {
                             sbCreateTablePrimaryKey.append("Columns.")
                                     .append(fieldData.dbConstantName).append(".getName()");
                         }
+                    }
+
+                    if (fieldData.dbIsUnique) {
+                        if (hasPreviousUnique) {
+                            sbCreateTableUnique.append(" + \", \" + ");
+                        }
+                        hasPreviousUnique = true;
+                        sbCreateTableUnique.append("Columns.")
+                                .append(fieldData.dbConstantName).append(".getName()");
                     }
 
                     if (fieldData.dbHasIndex) {
@@ -233,8 +251,8 @@ public class DatabaseGenerator {
                 maxUpgradeVersion = tableData.version;
                 minUpgradeWithoutChanges = -1;
                 for (int curVers = tableData.version + 1; curVers <= dbVersion; curVers++) {
-                    final List<FieldData> upgradeFieldDataList = tableData.upgradeFieldMap
-                            .get(curVers);
+                    List<FieldData> upgradeFieldDataList =
+                            tableData.upgradeFieldMap.get(curVers);
                     if (upgradeFieldDataList == null) {
                         if (minUpgradeWithoutChanges == -1) {
                             minUpgradeWithoutChanges = curVers;
@@ -282,12 +300,41 @@ public class DatabaseGenerator {
                                 .append(fieldData.dbConstantName).append(".getName() + \" \" + ")
                                 .append("Columns.").append(fieldData.dbConstantName)
                                 .append(".getType()");
+                        if (fieldData.dbDefaultValue != null) {
+                            sbUpgradeTableCreateTmpTable.append(" + \" DEFAULT ")
+                                    .append(fieldData.dbDefaultValue).append("\"");
+                        }
                         if (fieldData.dbIsPrimaryKey) {
-                            if (hasPreviousPrimaryKey) {
-                                sbUpgradeTableCreateTmpTablePrimaryKey.append(" + \", \" + ");
+                            if (fieldData.dbIsAutoincrement) {
+                                if (hasPreviousPrimaryKey) {
+                                    throw new IllegalArgumentException("Not possible to have " +
+                                            "multiple primary key fields if one of them is an " +
+                                            "autoincrement field");
+                                } else {
+                                    hasAutoIncrementPrimaryKey = true;
+                                    sbUpgradeTableCreateTmpTable
+                                            .append("+ \" PRIMARY KEY AUTOINCREMENT\"");
+                                }
+                            } else if (hasAutoIncrementPrimaryKey) {
+                                throw new IllegalArgumentException("Not possible to have multiple" +
+                                        " primary key fields if one of them is an autoincrement " +
+                                        "field");
+                            } else {
+                                if (hasPreviousPrimaryKey) {
+                                    sbUpgradeTableCreateTmpTablePrimaryKey.append(" + \", \" + ");
+                                }
+                                hasPreviousPrimaryKey = true;
+                                sbUpgradeTableCreateTmpTablePrimaryKey.append("Columns.")
+                                        .append(fieldData.dbConstantName).append(".getName()");
                             }
-                            hasPreviousPrimaryKey = true;
-                            sbUpgradeTableCreateTmpTablePrimaryKey.append("Columns.")
+                        }
+
+                        if (fieldData.dbIsUnique) {
+                            if (hasPreviousUnique) {
+                                sbUpgradeTableCreateTmpTableUnique.append(" + \", \" + ");
+                            }
+                            hasPreviousUnique = true;
+                            sbUpgradeTableCreateTmpTableUnique.append("Columns.")
                                     .append(fieldData.dbConstantName).append(".getName()");
                         }
 
@@ -315,11 +362,12 @@ public class DatabaseGenerator {
                     }
 
                     sbUpgradeTable.append(String.format(
-                            contentSubClassUpgrade,
-                            curVers,
+                            contentSubClassUpgrade, curVers,
                             sbUpgradeTableCreateTmpTable.toString(),
                             hasPreviousPrimaryKey ? String.format(PRIMARY_KEY_FORMAT,
                                     sbUpgradeTableCreateTmpTablePrimaryKey.toString()) : "",
+                            hasPreviousUnique ? String.format(UNIQUE_FORMAT,
+                                    sbUpgradeTableCreateTmpTableUnique.toString()) : "",
                             sbUpgradeTableInsertFields.toString(),
                             sbUpgradeTableInsertDefaultValues.toString()));
 
@@ -366,7 +414,9 @@ public class DatabaseGenerator {
                         sbProjection.toString(),
                         sbCreateTable.toString(),
                         hasPreviousPrimaryKey ? String.format(PRIMARY_KEY_FORMAT,
-                                sbCreateTablePrimaryKey.toString()) : "", sbIndexes.toString(),
+                                sbCreateTablePrimaryKey.toString()) : "",
+                        hasPreviousUnique ? String.format(UNIQUE_FORMAT,
+                                sbCreateTableUnique.toString()) : "", sbIndexes.toString(),
                         sbBulkFields.toString(), sbBulkParams.toString(),
                         hasTextField ? BULK_STRING_VALUE : "", sbBulkValues.toString(),
                         tableData.version, sbUpgradeTableComment.toString(), sbUpgradeTable

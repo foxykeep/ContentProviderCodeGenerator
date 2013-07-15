@@ -69,6 +69,8 @@ public class FieldData {
             dbType = "real";
         } else if (type.equals("string") || type.equals("text") || type.equals("String")) {
             dbType = "text";
+        }else if (type.equals("Blob") || type.equals("blob") ) {
+            dbType = "blob";
         }
     }
 

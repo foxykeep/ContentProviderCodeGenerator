@@ -23,7 +23,15 @@ public class Main {
     public static void main(final String[] args) {
         final String dir = System.getProperty("user.dir");
         System.out.println("current dir = " + dir);
-        final File fileInputDir = new File(dir + File.separator + "example");
+        File fileInputDir;
+        if (args.length > 0) {
+            fileInputDir = new File(args[0]);
+            if (!fileInputDir.isAbsolute()) {
+                fileInputDir = new File(dir + File.separator + args[0]);
+            }
+        } else {
+            fileInputDir = new File(dir + File.separator + "example");
+        }
         if (!fileInputDir.exists() || !fileInputDir.isDirectory()) {
             return;
         }

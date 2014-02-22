@@ -21,8 +21,9 @@ import java.util.ArrayList;
 public class Main {
 
     public static void main(final String[] args) {
-
-        final File fileInputDir = new File("input");
+        final String dir = System.getProperty("user.dir");
+        System.out.println("current dir = " + dir);
+        final File fileInputDir = new File(dir + File.separator + "example");
         if (!fileInputDir.exists() || !fileInputDir.isDirectory()) {
             return;
         }
@@ -48,6 +49,9 @@ public class Main {
         // For each file in the input folder
         for (File file : fileInputDir.listFiles()) {
             final String fileName = file.getName();
+            if ("format.json".equals(fileName)) {
+                continue;
+            }
             System.out.println("Generating code for " + fileName);
 
             final char[] buffer = new char[2048];
@@ -73,7 +77,8 @@ public class Main {
                 return;
             }
 
-            final String content = sb.toString();
+            String content = sb.toString();
+            content = content.substring(content.indexOf("{"));
             if (content.length() == 0) {
                 System.out.println("file is empty.");
                 return;
@@ -84,8 +89,7 @@ public class Main {
                 final JSONObject jsonDatabase = root.getJSONObject("database");
 
                 // Classes generation
-                String classPackage, classesPrefix, contentClassesPrefix, dbAuthorityPackage,
-                        providerFolder;
+                String classPackage, classesPrefix, contentClassesPrefix, dbAuthorityPackage, providerFolder;
                 int dbVersion;
                 boolean hasProviderSubclasses;
                 classPackage = jsonDatabase.getString("package");
@@ -97,17 +101,19 @@ public class Main {
                 dbVersion = jsonDatabase.getInt("version");
                 hasProviderSubclasses = jsonDatabase.optBoolean("has_subclasses");
 
-                ArrayList<TableData> classDataList = TableData.getClassesData(root.getJSONArray(
-                        "tables"), contentClassesPrefix, dbVersion);
+                ArrayList<TableData> classDataList = TableData.getClassesData(
+                        root.getJSONArray("tables"), contentClassesPrefix, dbVersion);
 
                 // Database generation
                 DatabaseGenerator.generate(fileName, classPackage, dbVersion, dbAuthorityPackage,
                         classesPrefix, classDataList, providerFolder, hasProviderSubclasses);
 
-                FileCache.saveFile(PathUtils.getAndroidFullPath(fileName, classPackage,
-                        providerFolder + "." + PathUtils.UTIL) + "ColumnMetadata.java",
-                        String.format(columnMetadataText, classPackage,
-                                providerFolder + "." + PathUtils.UTIL));
+                FileCache.saveFile(
+                        PathUtils.getAndroidFullPath(fileName, classPackage, providerFolder + "."
+                                + PathUtils.UTIL)
+                                + "ColumnMetadata.java",
+                        String.format(columnMetadataText, classPackage, providerFolder + "."
+                                + PathUtils.UTIL));
 
             } catch (JSONException e) {
                 e.printStackTrace();

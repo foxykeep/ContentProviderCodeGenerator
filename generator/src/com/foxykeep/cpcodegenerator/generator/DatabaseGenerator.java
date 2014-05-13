@@ -54,7 +54,7 @@ public class DatabaseGenerator {
     public static void generate(final String fileName, final String classPackage,
             final int dbVersion, final String dbAuthorityPackage, final String classesPrefix,
             final ArrayList<TableData> tableDataList, final String providerFolder,
-            boolean hasProviderSubclasses) {
+            boolean hasProviderSubclasses, String providerAuthorityResource) {
         if (classPackage == null || classPackage.length() == 0 || classesPrefix == null
                 || classesPrefix.length() == 0 || tableDataList == null || tableDataList.isEmpty()) {
             System.out.println("Error : You must provide a class package, a class prefix and a " +
@@ -64,7 +64,7 @@ public class DatabaseGenerator {
         generateContentClass(fileName, classPackage, classesPrefix, tableDataList, dbVersion,
                 providerFolder);
         generateProviderClass(fileName, classPackage, dbVersion, dbAuthorityPackage, classesPrefix,
-                tableDataList, providerFolder, hasProviderSubclasses);
+                tableDataList, providerFolder, hasProviderSubclasses,providerAuthorityResource);
     }
 
     private static void generateContentClass(final String fileName, final String classPackage,
@@ -439,7 +439,7 @@ public class DatabaseGenerator {
     private static void generateProviderClass(final String fileName, final String classPackage,
             final int dbVersion, final String dbAuthorityPackage, final String classesPrefix,
             final ArrayList<TableData> tableDataList, final String providerFolder,
-            boolean hasProviderSubclasses) {
+            boolean hasProviderSubclasses, String providerAuthorityResource) {
 
         final StringBuilder sbImports = new StringBuilder();
         final StringBuilder sbUriTypes = new StringBuilder();
@@ -505,6 +505,15 @@ public class DatabaseGenerator {
             sbBulk.append(String.format(bulkText, tableData.dbConstantName, tableData.dbClassName));
         }
 
+        final StringBuilder sbAuthority = new StringBuilder();
+        if(providerAuthorityResource==null || providerAuthorityResource.trim().length()==0){
+        	sbAuthority.append(String.format("\"%1$s.provider.%2$sProvider\"", dbAuthorityPackage,classesPrefix));
+        }else{
+            // Import the R file if authority was defined through resources
+        	sbImports.append("import ").append(classPackage).append(".R;\n");
+        	sbAuthority.append(String.format("getContext().getString(R.string.%1$s)", providerAuthorityResource));
+        }
+        
         // Upgrade comments in the provider
         minUpgradeWithoutChanges = -1;
         for (int currentVersion = 2; currentVersion <= dbVersion; currentVersion++) {
@@ -566,7 +575,7 @@ public class DatabaseGenerator {
                 sbImports.toString(), classesPrefix, dbAuthorityPackage, sbUriTypes.toString(),
                 sbCreateTables.toString(), sbUpgradeTables.toString(), sbCaseWithId.toString(),
                 sbCaseWithoutId.toString(), sbBulk.toString(), providerFolder, dbVersion,
-                sbUpgradeDatabaseComment.toString(), hasProviderSubclasses ? "" : "final "));
+                sbUpgradeDatabaseComment.toString(), hasProviderSubclasses ? "" : "final ",sbAuthority.toString()));
 
     }
 

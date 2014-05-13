@@ -32,11 +32,11 @@ public %14$sclass %3$sProvider extends ContentProvider {
 
     protected static final String DATABASE_NAME = "%3$sProvider.db";
 
-    public static final String AUTHORITY = "%4$s.provider.%3$sProvider";
+    public static String AUTHORITY;
 
-    static {
-        Uri.parse("content://" + AUTHORITY + "/integrityCheck");
-    }
+    //static {
+    //    Uri.parse("content://" + AUTHORITY + "/integrityCheck");
+    //}
 
     // Version 1 : Creation of the database
 %13$s    public static final int DATABASE_VERSION = %12$d;
@@ -47,11 +47,12 @@ public %14$sclass %3$sProvider extends ContentProvider {
 %5$s
         private String mTableName;
         private String mType;
+        private String mMatchPath;
 
         UriType(String matchPath, String tableName, String type) {
             mTableName = tableName;
             mType = type;
-            sUriMatcher.addURI(AUTHORITY, matchPath, ordinal());
+            mMatchPath = matchPath;
         }
 
         String getTableName() {
@@ -60,6 +61,10 @@ public %14$sclass %3$sProvider extends ContentProvider {
 
         String getType() {
             return mType;
+        }
+        
+        String getMatchPath() {
+            return mMatchPath;
         }
     }
 
@@ -317,6 +322,12 @@ public %14$sclass %3$sProvider extends ContentProvider {
 
     @Override
     public boolean onCreate() {
+    	AUTHORITY = %15$s ;
+    	
+    	for(UriType type : UriType.values()){
+    		sUriMatcher.addURI(AUTHORITY, type.getMatchPath(), type.ordinal());	
+    	}
+    	
         return true;
     }
 }

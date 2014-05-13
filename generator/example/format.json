@@ -15,6 +15,7 @@
                 Default is "".
         "has_subclasses":false, // Optional. Whether the generated provider has subclasses. This
                 will remove the final keyword and change some fields to protected
+		"authority_resource_name":"content_provider_authority",      // Optional. The name of the string resource that will be used as the authority of the Content Provider. If not set a generated constant will be used          
         "version":1 // Required. Version of the database.
     },
     "tables":[ // your tables

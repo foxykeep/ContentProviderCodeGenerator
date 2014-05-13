@@ -85,7 +85,7 @@ public class Main {
 
                 // Classes generation
                 String classPackage, classesPrefix, contentClassesPrefix, dbAuthorityPackage,
-                        providerFolder;
+                        providerFolder, providerAuthority;
                 int dbVersion;
                 boolean hasProviderSubclasses;
                 classPackage = jsonDatabase.getString("package");
@@ -96,13 +96,14 @@ public class Main {
                         PathUtils.PROVIDER_DEFAULT);
                 dbVersion = jsonDatabase.getInt("version");
                 hasProviderSubclasses = jsonDatabase.optBoolean("has_subclasses");
+                providerAuthority = jsonDatabase.optString("authority_resource_name");
 
                 ArrayList<TableData> classDataList = TableData.getClassesData(root.getJSONArray(
                         "tables"), contentClassesPrefix, dbVersion);
 
                 // Database generation
                 DatabaseGenerator.generate(fileName, classPackage, dbVersion, dbAuthorityPackage,
-                        classesPrefix, classDataList, providerFolder, hasProviderSubclasses);
+                        classesPrefix, classDataList, providerFolder, hasProviderSubclasses,providerAuthority);
 
                 FileCache.saveFile(PathUtils.getAndroidFullPath(fileName, classPackage,
                         providerFolder + "." + PathUtils.UTIL) + "ColumnMetadata.java",

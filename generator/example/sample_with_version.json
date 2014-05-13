@@ -6,6 +6,7 @@
 	"database":
 	{
 		"package":"com.foxykeep.cpcodegenerator.sample.version",
+		"authority_resource_name":"content_provider_authority",
 		"classes_prefix":"WishList",
 		"version":5
 	},

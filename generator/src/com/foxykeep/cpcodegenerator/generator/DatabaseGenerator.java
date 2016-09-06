@@ -52,9 +52,9 @@ public class DatabaseGenerator {
     }
 
     public static void generate(final String fileName, final String classPackage,
-            final int dbVersion, final String dbAuthorityPackage, final String classesPrefix,
-            final ArrayList<TableData> tableDataList, final String providerFolder,
-            boolean hasProviderSubclasses) {
+                                final int dbVersion, final String dbAuthorityPackage, final String classesPrefix,
+                                final ArrayList<TableData> tableDataList, final String providerFolder,
+                                boolean hasProviderSubclasses) {
         if (classPackage == null || classPackage.length() == 0 || classesPrefix == null
                 || classesPrefix.length() == 0 || tableDataList == null || tableDataList.isEmpty()) {
             System.out.println("Error : You must provide a class package, a class prefix and a " +
@@ -68,8 +68,8 @@ public class DatabaseGenerator {
     }
 
     private static void generateContentClass(final String fileName, final String classPackage,
-            final String classesPrefix, final ArrayList<TableData> tableDataList,
-            final int dbVersion, final String providerFolder) {
+                                             final String classesPrefix, final ArrayList<TableData> tableDataList,
+                                             final int dbVersion, final String providerFolder) {
 
         final StringBuilder sb = new StringBuilder();
         BufferedReader br;
@@ -360,7 +360,6 @@ public class DatabaseGenerator {
                                     .getDefaultValue(fieldData.type));
                         }
                     }
-
                     sbUpgradeTable.append(String.format(
                             contentSubClassUpgrade, curVers,
                             sbUpgradeTableCreateTmpTable.toString(),
@@ -437,9 +436,9 @@ public class DatabaseGenerator {
     }
 
     private static void generateProviderClass(final String fileName, final String classPackage,
-            final int dbVersion, final String dbAuthorityPackage, final String classesPrefix,
-            final ArrayList<TableData> tableDataList, final String providerFolder,
-            boolean hasProviderSubclasses) {
+                                              final int dbVersion, final String dbAuthorityPackage, final String classesPrefix,
+                                              final ArrayList<TableData> tableDataList, final String providerFolder,
+                                              boolean hasProviderSubclasses) {
 
         final StringBuilder sbImports = new StringBuilder();
         final StringBuilder sbUriTypes = new StringBuilder();
@@ -447,6 +446,7 @@ public class DatabaseGenerator {
         final StringBuilder sbUpgradeTables = new StringBuilder();
         final StringBuilder sbCaseWithId = new StringBuilder();
         final StringBuilder sbCaseWithoutId = new StringBuilder();
+        final StringBuilder sbCaseWithoutIdWithoutRaw = new StringBuilder();
         final StringBuilder sbBulk = new StringBuilder();
         final StringBuilder sbUpgradeDatabaseComment = new StringBuilder();
         final StringBuilder sbUpgradeDatabaseCommentFields = new StringBuilder();
@@ -501,6 +501,10 @@ public class DatabaseGenerator {
                     .append("_ID:\n");
             sbCaseWithoutId.append("            case ").append(tableData.dbConstantName)
                     .append(":\n");
+            if (!tableData.dbTableName.equals("raw")) {
+                sbCaseWithoutIdWithoutRaw.append("            case ").append(tableData.dbConstantName)
+                        .append(":\n");
+            }
 
             sbBulk.append(String.format(bulkText, tableData.dbConstantName, tableData.dbClassName));
         }
@@ -562,17 +566,30 @@ public class DatabaseGenerator {
         }
 
         FileCache.saveFile(PathUtils.getAndroidFullPath(fileName, classPackage, providerFolder)
-                + classesPrefix + "Provider.java", String.format(sb.toString(), classPackage,
-                sbImports.toString(), classesPrefix, dbAuthorityPackage, sbUriTypes.toString(),
-                sbCreateTables.toString(), sbUpgradeTables.toString(), sbCaseWithId.toString(),
-                sbCaseWithoutId.toString(), sbBulk.toString(), providerFolder, dbVersion,
-                sbUpgradeDatabaseComment.toString(), hasProviderSubclasses ? "" : "final "));
+                        + classesPrefix + "Provider.java",
+                String.format(
+                        sb.toString(),
+                        classPackage,
+                        sbImports.toString(),
+                        classesPrefix,
+                        dbAuthorityPackage,
+                        sbUriTypes.toString(),
+                        sbCreateTables.toString(),
+                        sbUpgradeTables.toString(),
+                        sbCaseWithId.toString(),
+                        sbCaseWithoutId.toString(),
+                        sbBulk.toString(),
+                        providerFolder,
+                        dbVersion,
+                        sbUpgradeDatabaseComment.toString(),
+                        hasProviderSubclasses ? "" : "final ",
+                        sbCaseWithoutIdWithoutRaw));
 
     }
 
     private static void appendUpgradeDatabaseComment(final StringBuilder sb,
-            final boolean firstElem, final int minUpgradeWithoutChanges, final int currentVersion,
-            final String content) {
+                                                     final boolean firstElem, final int minUpgradeWithoutChanges, final int currentVersion,
+                                                     final String content) {
 
         if (minUpgradeWithoutChanges != -1) {
             if (minUpgradeWithoutChanges == currentVersion - 1) {

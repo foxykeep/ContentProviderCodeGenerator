@@ -16,6 +16,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteQueryBuilder;
 import android.database.sqlite.SQLiteStatement;
 import android.net.Uri;
 import android.provider.BaseColumns;
@@ -37,7 +38,7 @@ public %14$sclass %3$sProvider extends ContentProvider {
 
     /* package */ static final boolean ACTIVATE_ALL_LOGS = false;
 
-    protected static final String DATABASE_NAME = "%3$sProvider.db";
+    public static final String DATABASE_NAME = "%3$sProvider.db";
 
     public static final String AUTHORITY = LibApp.getContext().getString(R.string.content_authority);
 
@@ -99,11 +100,11 @@ public %14$sclass %3$sProvider extends ContentProvider {
         return mDatabase;
     }
 
-    private class DatabaseHelper extends SQLiteOpenHelper {
+    public static class DatabaseHelper extends SQLiteOpenHelper {
 
         Context mContext;
 
-        DatabaseHelper(Context context, String name) {
+        public DatabaseHelper(Context context, String name) {
             super(context, name, null, DATABASE_VERSION);
             mContext = context;
         }
@@ -114,8 +115,6 @@ public %14$sclass %3$sProvider extends ContentProvider {
 
             // Create all tables here; each class has its own method
 %6$s       
-            //copy all data from the old database if it exists.
-            new TractiveDbUpgradeHelper().copyFromOldDb(db, mContext);
 
  }
 
@@ -267,8 +266,14 @@ public %14$sclass %3$sProvider extends ContentProvider {
                 c = db.query(uriType.getTableName(), projection, whereWithId(selection),
                         addIdToSelectionArgs(id, selectionArgs), null, null, sortOrder);
                 break;
-%9$s                c = db.query(uriType.getTableName(), projection, selection, selectionArgs,
+%15$s                c = db.query(uriType.getTableName(), projection, selection, selectionArgs,
                         null, null, sortOrder);
+                break;
+                
+            case RAW:
+                SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
+                queryBuilder.setTables(selectionArgs[0]);
+                c = queryBuilder.query(db, projection, null, null, selection, sortOrder, null);
                 break;
         }
 

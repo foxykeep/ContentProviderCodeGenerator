@@ -1,5 +1,8 @@
 package %1$s.%11$s;
 
+import com.tractive.android.commons.R;
+import com.tractive.android.data.SLog;
+import com.tractive.android.util.LibApp;
 %2$s
 import android.content.ContentProvider;
 import android.content.ContentProviderOperation;
@@ -11,11 +14,15 @@ import android.content.OperationApplicationException;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteQueryBuilder;
 import android.database.sqlite.SQLiteStatement;
 import android.net.Uri;
 import android.provider.BaseColumns;
 import android.util.Log;
+
+
 
 import java.util.ArrayList;
 
@@ -27,12 +34,13 @@ import java.util.ArrayList;
 public %14$sclass %3$sProvider extends ContentProvider {
 
     private static final String LOG_TAG = %3$sProvider.class.getSimpleName();
+    private ContentValuesModifyHook mContentValuesModifyHook;
 
     /* package */ static final boolean ACTIVATE_ALL_LOGS = false;
 
-    protected static final String DATABASE_NAME = "%3$sProvider.db";
+    public static final String DATABASE_NAME = "%3$sProvider.db";
 
-    public static final String AUTHORITY = "%4$s.provider.%3$sProvider";
+    public static final String AUTHORITY = LibApp.getContext().getString(R.string.content_authority);
 
     static {
         Uri.parse("content://" + AUTHORITY + "/integrityCheck");
@@ -92,18 +100,23 @@ public %14$sclass %3$sProvider extends ContentProvider {
         return mDatabase;
     }
 
-    private class DatabaseHelper extends SQLiteOpenHelper {
+    public static class DatabaseHelper extends SQLiteOpenHelper {
 
-        DatabaseHelper(Context context, String name) {
+        Context mContext;
+
+        public DatabaseHelper(Context context, String name) {
             super(context, name, null, DATABASE_VERSION);
+            mContext = context;
         }
 
         @Override
         public void onCreate(SQLiteDatabase db) {
-            Log.d(LOG_TAG, "Creating %3$sProvider database");
+            SLog.d("Creating %3$sProvider database");
 
             // Create all tables here; each class has its own method
-%6$s        }
+%6$s       
+
+ }
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
@@ -155,6 +168,8 @@ public %14$sclass %3$sProvider extends ContentProvider {
 
         UriType uriType = matchUri(uri);
         Context context = getContext();
+        // Hook for app to modify content values before they are inserted (e.g. for activity_day)
+        mContentValuesModifyHook.onContentValuesModified(values);
 
         // Pick the correct database for this operation
         SQLiteDatabase db = getDatabase(context);
@@ -251,8 +266,14 @@ public %14$sclass %3$sProvider extends ContentProvider {
                 c = db.query(uriType.getTableName(), projection, whereWithId(selection),
                         addIdToSelectionArgs(id, selectionArgs), null, null, sortOrder);
                 break;
-%9$s                c = db.query(uriType.getTableName(), projection, selection, selectionArgs,
+%15$s                c = db.query(uriType.getTableName(), projection, selection, selectionArgs,
                         null, null, sortOrder);
+                break;
+                
+            case RAW:
+                SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
+                queryBuilder.setTables(selectionArgs[0]);
+                c = queryBuilder.query(db, projection, null, null, selection, sortOrder, null);
                 break;
         }
 
@@ -293,6 +314,9 @@ public %14$sclass %3$sProvider extends ContentProvider {
         UriType uriType = matchUri(uri);
         Context context = getContext();
 
+        // Hook for app to modify content values before they are inserted (e.g. for activity_day)
+        mContentValuesModifyHook.onContentValuesModified(values);
+
         // Pick the correct database for this operation
         SQLiteDatabase db = getDatabase(context);
 
@@ -317,6 +341,7 @@ public %14$sclass %3$sProvider extends ContentProvider {
 
     @Override
     public boolean onCreate() {
+        mContentValuesModifyHook = LibApp.getInstance().getContentProviderHook();
         return true;
     }
 }

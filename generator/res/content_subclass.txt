@@ -73,12 +73,12 @@
                 return;
             }
 
-            if (oldVersion < 13 && "geotrace".equals(TABLE_NAME)) {
+%18$s
+
+            if (oldVersion < 14 && "geotrace".equals(TABLE_NAME)) {
                 //hacky workaround as the foxykeep code "generation" are just nested String.formats
                 TractiveDbUpgradeHelper.upgradeLocationsJsonToLocationsPath(db);
             }
-
-%18$s
 
             if (oldVersion != newVersion) {
                 throw new IllegalStateException("Error upgrading the database to version "
